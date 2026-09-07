@@ -1,0 +1,1180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TrustHub — Verified Local Services</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#12213B;
+    --ink-soft:#28395c;
+    --parchment:#F7F3EA;
+    --parchment-deep:#EFE8D8;
+    --brass:#B8863B;
+    --brass-light:#e7cd9c;
+    --green:#2F6E4E;
+    --green-bg:#e7f0e9;
+    --clay:#B4482F;
+    --clay-bg:#f6e6e1;
+    --charcoal:#1E1B16;
+    --slate:#665f52;
+    --line:#ddd3bd;
+    --white:#FFFDF8;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--parchment);
+    color:var(--charcoal);
+    font-family:'Inter',sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .serif{font-family:'Fraunces',serif;}
+  a{color:inherit;text-decoration:none;}
+  button{font-family:'Inter',sans-serif;cursor:pointer;border:none;}
+  button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible{
+    outline:2px solid var(--brass); outline-offset:2px;
+  }
+  ::selection{background:var(--brass-light);}
+
+  #app{max-width:1180px;margin:0 auto;min-height:100vh;position:relative;}
+
+  /* ---------- NAV ---------- */
+  .nav{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:20px 24px;border-bottom:1px solid var(--line);
+    background:var(--parchment);position:sticky;top:0;z-index:40;
+  }
+  .brand{display:flex;align-items:center;gap:10px;}
+  .brand .mark{
+    width:34px;height:34px;border-radius:2px;
+    background:var(--ink);color:var(--brass-light);
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Fraunces',serif;font-weight:700;font-size:18px;
+  }
+  .brand .word{font-family:'Fraunces',serif;font-weight:600;font-size:21px;color:var(--ink);}
+  .brand .word span{color:var(--brass);}
+  .nav-links{display:flex;gap:28px;align-items:center;}
+  .nav-links a{font-size:14.5px;color:var(--slate);border-bottom:2px solid transparent;padding-bottom:4px;}
+  .nav-links a.active,.nav-links a:hover{color:var(--ink);border-color:var(--brass);}
+  .nav-right{display:flex;gap:12px;align-items:center;}
+  .navbtn{padding:9px 18px;font-size:14px;border-radius:2px;font-weight:600;}
+  .navbtn.ghost{background:transparent;color:var(--ink);border:1px solid var(--ink);}
+  .navbtn.solid{background:var(--ink);color:var(--white);}
+  .navbtn.ghost:hover{background:var(--ink);color:var(--white);}
+  .navbtn.solid:hover{background:var(--ink-soft);}
+  .avatar{
+    width:36px;height:36px;border-radius:50%;background:var(--brass-light);
+    color:var(--ink);display:flex;align-items:center;justify-content:center;
+    font-weight:700;font-size:14px;border:1px solid var(--brass);
+  }
+  .mobile-menu-btn{display:none;background:none;font-size:22px;color:var(--ink);}
+
+  main{padding:0 24px 80px;}
+
+  /* ---------- HOME ---------- */
+  .hero{
+    display:grid;grid-template-columns:1.1fr 0.9fr;gap:48px;
+    padding:64px 0 40px;align-items:center;border-bottom:1px solid var(--line);
+  }
+  .eyebrow-seal{
+    display:inline-flex;align-items:center;gap:8px;
+    border:1px solid var(--brass);color:var(--brass);
+    padding:5px 12px;border-radius:2px;font-size:12.5px;font-weight:600;margin-bottom:22px;
+    letter-spacing:.02em;
+  }
+  .hero h1{
+    font-family:'Fraunces',serif;font-weight:600;font-size:52px;line-height:1.06;
+    color:var(--ink);margin:0 0 20px;letter-spacing:-0.01em;
+  }
+  .hero p.lead{font-size:17px;color:var(--slate);line-height:1.6;max-width:46ch;margin-bottom:32px;}
+  .search-bar{
+    display:flex;background:var(--white);border:1.5px solid var(--ink);
+    border-radius:2px;overflow:hidden;max-width:520px;
+  }
+  .search-bar input{
+    flex:1;border:none;padding:15px 16px;font-size:15px;background:transparent;
+  }
+  .search-bar input:focus{outline:none;}
+  .search-bar button{
+    background:var(--ink);color:var(--white);padding:0 24px;font-weight:600;font-size:14.5px;
+  }
+  .search-bar button:hover{background:var(--ink-soft);}
+  .chip-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px;}
+  .chip{
+    border:1px solid var(--line);background:var(--white);padding:8px 14px;
+    border-radius:20px;font-size:13.5px;color:var(--ink);
+  }
+  .chip:hover{border-color:var(--brass);}
+  .stat-row{display:flex;gap:36px;margin-top:34px;flex-wrap:wrap;}
+  .stat b{font-family:'Fraunces',serif;font-size:26px;color:var(--ink);display:block;}
+  .stat span{font-size:12.5px;color:var(--slate);}
+
+  .hero-card{
+    background:var(--ink);border-radius:3px;padding:30px;color:var(--white);position:relative;
+    background-image: radial-gradient(circle at 85% 15%, rgba(184,134,59,0.18), transparent 55%);
+  }
+  .seal-big{
+    width:96px;height:96px;border-radius:50%;border:3px solid var(--brass);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    margin:0 auto 18px;background:rgba(184,134,59,0.08);
+  }
+  .seal-big b{font-family:'Fraunces',serif;font-size:30px;color:var(--brass-light);line-height:1;}
+  .seal-big span{font-size:10px;color:var(--brass-light);letter-spacing:.05em;}
+  .hero-card h3{font-family:'Fraunces',serif;font-weight:500;font-size:19px;text-align:center;margin:0 0 6px;}
+  .hero-card p{font-size:13.5px;color:#c9d0e0;text-align:center;margin:0 0 20px;line-height:1.5;}
+  .factor-list{display:flex;flex-direction:column;gap:10px;}
+  .factor{display:flex;justify-content:space-between;align-items:center;font-size:13px;border-top:1px solid rgba(255,255,255,0.12);padding-top:10px;}
+  .factor .fname{color:#dfe3ee;}
+  .factor .fval{font-family:'Fraunces',serif;color:var(--brass-light);font-weight:600;}
+
+  .cat-section{padding:44px 0;border-bottom:1px solid var(--line);}
+  .section-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:24px;}
+  .section-head h2{font-family:'Fraunces',serif;font-size:26px;color:var(--ink);margin:0;font-weight:600;}
+  .cat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;}
+  .cat-card{
+    border:1px solid var(--line);background:var(--white);padding:22px 18px;border-radius:2px;
+    display:flex;flex-direction:column;gap:10px;
+  }
+  .cat-card:hover{border-color:var(--brass);}
+  .cat-card .ic{font-size:24px;}
+  .cat-card .name{font-weight:600;font-size:15px;color:var(--ink);}
+  .cat-card .count{font-size:12.5px;color:var(--slate);}
+
+  .how-section{padding:44px 0;}
+  .how-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;}
+  .how-step{border-left:2px solid var(--brass);padding-left:18px;}
+  .how-step .num{font-family:'Fraunces',serif;color:var(--brass);font-size:14px;font-weight:600;}
+  .how-step h4{font-family:'Fraunces',serif;font-size:18px;margin:6px 0 8px;color:var(--ink);}
+  .how-step p{font-size:14px;color:var(--slate);line-height:1.55;margin:0;}
+
+  /* ---------- SEARCH ---------- */
+  .search-top{padding:32px 0 20px;border-bottom:1px solid var(--line);}
+  .search-top h2{font-family:'Fraunces',serif;font-size:26px;margin:0 0 4px;color:var(--ink);}
+  .search-top .meta{font-size:13.5px;color:var(--slate);}
+  .search-layout{display:grid;grid-template-columns:250px 1fr;gap:32px;padding-top:28px;}
+  .filter-box{border:1px solid var(--line);background:var(--white);border-radius:2px;padding:20px;height:fit-content;}
+  .filter-box h4{font-family:'Fraunces',serif;font-size:15px;margin:0 0 12px;color:var(--ink);}
+  .filter-group{margin-bottom:22px;padding-bottom:18px;border-bottom:1px solid var(--line);}
+  .filter-group:last-child{border-bottom:none;}
+  .filter-opt{display:flex;align-items:center;gap:9px;font-size:14px;color:var(--charcoal);margin-bottom:9px;cursor:pointer;}
+  .filter-opt input{accent-color:var(--brass);}
+  .results-col{display:flex;flex-direction:column;gap:14px;}
+  .sort-row{display:flex;justify-content:flex-end;margin-bottom:4px;}
+  .sort-row select{border:1px solid var(--line);padding:8px 10px;border-radius:2px;font-size:13.5px;background:var(--white);}
+
+  .provider-card{
+    border:1px solid var(--line);background:var(--white);border-radius:2px;
+    display:grid;grid-template-columns:140px 1fr auto;gap:20px;padding:18px;align-items:center;
+  }
+  .provider-card:hover{border-color:var(--brass);}
+  .p-thumb{
+    width:140px;height:100px;border-radius:2px;background:linear-gradient(135deg,var(--ink),var(--ink-soft));
+    display:flex;align-items:center;justify-content:center;color:var(--brass-light);
+    font-family:'Fraunces',serif;font-size:26px;font-weight:600;
+  }
+  .p-body h3{font-family:'Fraunces',serif;font-size:19px;margin:0 0 4px;color:var(--ink);}
+  .p-body .p-meta{font-size:13px;color:var(--slate);margin-bottom:8px;}
+  .p-tags{display:flex;gap:6px;flex-wrap:wrap;}
+  .p-tag{font-size:11.5px;border:1px solid var(--line);padding:3px 8px;border-radius:12px;color:var(--slate);}
+  .p-side{display:flex;flex-direction:column;align-items:flex-end;gap:10px;}
+  .trust-pill{
+    display:flex;align-items:center;gap:6px;border:1px solid var(--brass);color:var(--brass);
+    padding:4px 10px;border-radius:2px;font-size:12.5px;font-weight:700;
+  }
+  .verified-pill{display:flex;align-items:center;gap:5px;color:var(--green);font-size:12.5px;font-weight:600;}
+  .price-tag{font-size:12.5px;color:var(--slate);}
+  .price-tag b{color:var(--ink);font-size:15px;}
+  .btn-primary{background:var(--ink);color:var(--white);padding:9px 18px;border-radius:2px;font-size:13.5px;font-weight:600;}
+  .btn-primary:hover{background:var(--ink-soft);}
+  .btn-outline{background:transparent;border:1px solid var(--ink);color:var(--ink);padding:9px 18px;border-radius:2px;font-size:13.5px;font-weight:600;}
+  .btn-outline:hover{background:var(--ink);color:var(--white);}
+
+  /* ---------- PROVIDER PROFILE ---------- */
+  .profile-hero{display:grid;grid-template-columns:1fr 320px;gap:32px;padding:36px 0;border-bottom:1px solid var(--line);}
+  .profile-head{display:flex;gap:18px;align-items:flex-start;margin-bottom:20px;}
+  .profile-mark{
+    width:74px;height:74px;border-radius:2px;background:linear-gradient(135deg,var(--ink),var(--ink-soft));
+    display:flex;align-items:center;justify-content:center;color:var(--brass-light);
+    font-family:'Fraunces',serif;font-size:30px;flex-shrink:0;
+  }
+  .profile-head h1{font-family:'Fraunces',serif;font-size:30px;margin:0 0 4px;color:var(--ink);}
+  .profile-head .sub{font-size:14px;color:var(--slate);}
+  .tab-row{display:flex;gap:26px;border-bottom:1px solid var(--line);margin:20px 0 20px;}
+  .tab{padding-bottom:12px;font-size:14.5px;color:var(--slate);border-bottom:2px solid transparent;font-weight:500;}
+  .tab.active{color:var(--ink);border-color:var(--brass);font-weight:600;}
+  .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px;}
+  .info-box{border:1px solid var(--line);background:var(--white);padding:16px;border-radius:2px;}
+  .info-box .k{font-size:11.5px;color:var(--slate);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px;}
+  .info-box .v{font-family:'Fraunces',serif;font-size:20px;color:var(--ink);}
+
+  .trust-card{border:1px solid var(--brass);background:var(--white);border-radius:2px;padding:24px;height:fit-content;}
+  .trust-card .seal-big{margin-bottom:14px;}
+  .trust-breakdown{display:flex;flex-direction:column;gap:11px;margin:18px 0;}
+  .tb-row{font-size:13px;}
+  .tb-row .tb-top{display:flex;justify-content:space-between;margin-bottom:4px;color:var(--charcoal);}
+  .tb-bar{height:5px;background:var(--parchment-deep);border-radius:3px;overflow:hidden;}
+  .tb-fill{height:100%;background:var(--brass);}
+  .review-item{border-bottom:1px solid var(--line);padding:16px 0;}
+  .review-item:last-child{border-bottom:none;}
+  .review-item .r-top{display:flex;justify-content:space-between;font-size:13.5px;color:var(--slate);margin-bottom:6px;}
+  .review-item .r-name{font-weight:600;color:var(--ink);}
+  .review-item p{margin:0;font-size:14px;line-height:1.55;color:var(--charcoal);}
+  .stars{color:var(--brass);font-size:13px;}
+
+  /* ---------- BOOKING ---------- */
+  .booking-wrap{padding:36px 0;}
+  .step-track{display:flex;align-items:center;justify-content:center;gap:0;margin-bottom:40px;}
+  .step-dot{
+    width:30px;height:30px;border-radius:50%;border:1.5px solid var(--line);color:var(--slate);
+    display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;background:var(--white);
+  }
+  .step-dot.active{border-color:var(--ink);background:var(--ink);color:var(--white);}
+  .step-dot.done{border-color:var(--green);background:var(--green);color:var(--white);}
+  .step-line{width:60px;height:1.5px;background:var(--line);}
+  .step-line.done{background:var(--green);}
+  .step-label{font-size:11px;color:var(--slate);text-align:center;margin-top:6px;width:80px;}
+  .booking-grid{display:grid;grid-template-columns:1fr 320px;gap:32px;}
+  .form-card{border:1px solid var(--line);background:var(--white);padding:26px;border-radius:2px;}
+  .form-card h3{font-family:'Fraunces',serif;font-size:20px;margin:0 0 20px;color:var(--ink);}
+  .field{margin-bottom:18px;}
+  .field label{display:block;font-size:13px;color:var(--slate);margin-bottom:6px;font-weight:600;}
+  .field input, .field select, .field textarea{
+    width:100%;border:1px solid var(--line);padding:11px 13px;border-radius:2px;font-size:14.5px;
+    font-family:'Inter',sans-serif;background:var(--parchment);
+  }
+  .field textarea{min-height:80px;resize:vertical;}
+  .field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--brass);}
+  .summary-card{border:1px solid var(--line);background:var(--white);padding:22px;border-radius:2px;height:fit-content;}
+  .summary-card h4{font-family:'Fraunces',serif;font-size:16px;margin:0 0 16px;color:var(--ink);}
+  .summary-row{display:flex;justify-content:space-between;font-size:13.5px;padding:9px 0;border-bottom:1px solid var(--line);}
+  .summary-row:last-child{border-bottom:none;}
+  .summary-row .k{color:var(--slate);}
+  .summary-row .v{color:var(--ink);font-weight:600;}
+  .btn-block{width:100%;padding:13px;margin-top:16px;border-radius:2px;font-weight:700;font-size:14.5px;}
+  .done-box{text-align:center;padding:60px 0;}
+  .done-box .ok-mark{
+    width:80px;height:80px;border-radius:50%;background:var(--green-bg);color:var(--green);
+    display:flex;align-items:center;justify-content:center;font-size:36px;margin:0 auto 22px;border:2px solid var(--green);
+  }
+  .done-box h2{font-family:'Fraunces',serif;color:var(--ink);font-size:26px;margin:0 0 8px;}
+  .done-box p{color:var(--slate);font-size:14.5px;margin-bottom:26px;}
+
+  /* ---------- AUTH ---------- */
+  .auth-wrap{display:flex;justify-content:center;padding:60px 0;}
+  .auth-card{width:400px;border:1px solid var(--line);background:var(--white);padding:34px;border-radius:2px;}
+  .auth-tabs{display:flex;border-bottom:1px solid var(--line);margin-bottom:24px;}
+  .auth-tab{flex:1;text-align:center;padding-bottom:12px;font-size:14.5px;color:var(--slate);border-bottom:2px solid transparent;font-weight:600;}
+  .auth-tab.active{color:var(--ink);border-color:var(--brass);}
+  .auth-card h2{font-family:'Fraunces',serif;font-size:24px;margin:0 0 4px;color:var(--ink);}
+  .auth-card .sub{font-size:13.5px;color:var(--slate);margin-bottom:22px;}
+  .role-pick{display:flex;gap:10px;margin-bottom:18px;}
+  .role-opt{flex:1;text-align:center;border:1px solid var(--line);padding:10px;border-radius:2px;font-size:13px;font-weight:600;color:var(--slate);}
+  .role-opt.active{border-color:var(--ink);background:var(--ink);color:var(--white);}
+  .msg-err{background:var(--clay-bg);color:var(--clay);font-size:13px;padding:10px 12px;border-radius:2px;margin-bottom:14px;}
+  .msg-ok{background:var(--green-bg);color:var(--green);font-size:13px;padding:10px 12px;border-radius:2px;margin-bottom:14px;}
+
+  /* ---------- DASHBOARDS ---------- */
+  .dash-layout{display:grid;grid-template-columns:220px 1fr;gap:32px;padding-top:28px;}
+  .side-nav{display:flex;flex-direction:column;gap:2px;}
+  .side-nav a{padding:10px 14px;font-size:14px;color:var(--slate);border-radius:2px;border-left:2px solid transparent;}
+  .side-nav a.active{color:var(--ink);font-weight:600;border-left-color:var(--brass);background:var(--white);}
+  .side-nav a:hover{background:var(--white);}
+  .dash-head{margin-bottom:22px;}
+  .dash-head h2{font-family:'Fraunces',serif;font-size:26px;margin:0 0 4px;color:var(--ink);}
+  .dash-head .sub{font-size:13.5px;color:var(--slate);}
+  .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px;}
+  .kpi-card{border:1px solid var(--line);background:var(--white);padding:18px;border-radius:2px;}
+  .kpi-card .kv{font-family:'Fraunces',serif;font-size:26px;color:var(--ink);}
+  .kpi-card .kl{font-size:12px;color:var(--slate);margin-top:4px;}
+  .panel{border:1px solid var(--line);background:var(--white);border-radius:2px;padding:22px;margin-bottom:20px;}
+  .panel h3{font-family:'Fraunces',serif;font-size:17px;margin:0 0 16px;color:var(--ink);}
+  .list-row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--line);}
+  .list-row:last-child{border-bottom:none;}
+  .list-row .lr-main b{display:block;font-size:14.5px;color:var(--ink);}
+  .list-row .lr-main span{font-size:12.5px;color:var(--slate);}
+  .status-pill{font-size:11.5px;font-weight:700;padding:4px 10px;border-radius:12px;}
+  .status-pending{background:var(--clay-bg);color:var(--clay);}
+  .status-progress{background:#fff4dd;color:#93630b;}
+  .status-completed{background:var(--green-bg);color:var(--green);}
+  .status-accepted{background:#e5edf7;color:#2a5c9a;}
+  .empty-state{text-align:center;padding:40px 20px;color:var(--slate);font-size:14px;}
+  .flag-row{display:flex;justify-content:space-between;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--line);}
+  .flag-row:last-child{border-bottom:none;}
+  .flag-sev{font-size:11px;font-weight:700;padding:3px 9px;border-radius:12px;}
+  .sev-high{background:var(--clay-bg);color:var(--clay);}
+  .sev-med{background:#fff4dd;color:#93630b;}
+
+  .footer{border-top:1px solid var(--line);padding:32px 24px;margin-top:40px;}
+  .footer-inner{max-width:1180px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--slate);}
+
+  .small-link{font-size:13.5px;color:var(--brass);font-weight:600;}
+  .back-link{font-size:13.5px;color:var(--slate);margin-bottom:16px;display:inline-block;}
+  .back-link:hover{color:var(--ink);}
+
+  @media (max-width:900px){
+    .hero{grid-template-columns:1fr;}
+    .cat-grid{grid-template-columns:repeat(2,1fr);}
+    .how-grid{grid-template-columns:1fr;}
+    .search-layout{grid-template-columns:1fr;}
+    .provider-card{grid-template-columns:1fr;}
+    .p-thumb{width:100%;height:80px;}
+    .p-side{align-items:flex-start;}
+    .profile-hero{grid-template-columns:1fr;}
+    .booking-grid{grid-template-columns:1fr;}
+    .dash-layout{grid-template-columns:1fr;}
+    .kpi-grid{grid-template-columns:repeat(2,1fr);}
+    .nav-links{display:none;}
+    .hero h1{font-size:36px;}
+  }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+/* ============================================================
+   TRUSTHUB — client-side prototype
+   Persistence via window.storage (personal, per-user scope)
+   ============================================================ */
+
+/* ---------- Mock catalog data ---------- */
+const CATEGORIES = [
+  {id:'tech', name:'Tech & Repair', icon:'⌬', count:412},
+  {id:'home', name:'Home Services', icon:'⌂', count:588},
+  {id:'learn', name:'Tutoring', icon:'✎', count:201},
+  {id:'vehicle', name:'Vehicle Care', icon:'⚙', count:167},
+  {id:'creative', name:'Creative & Design', icon:'◈', count:94},
+  {id:'wellness', name:'Wellness', icon:'✦', count:76},
+  {id:'events', name:'Events', icon:'✂', count:53},
+  {id:'other', name:'Everything Else', icon:'…', count:88},
+];
+
+// Providers with raw signal data used to COMPUTE trust score live (not hardcoded)
+const PROVIDERS = [
+  {
+    id:'p1', name:'Northline Computers', category:'tech', initials:'NC',
+    services:['Laptop Repair','Software Recovery','Hardware Upgrade'],
+    city:'Riverbend District', priceFrom:300, priceTo:800,
+    identityVerified:true, contactVerified:true, yearsActive:5,
+    jobsCompleted:127, jobsAccepted:134, avgResponseMins:22,
+    reviews:[
+      {name:'A. Kade', stars:5, days:3, text:'Fixed my overheating laptop the same day, and explained exactly what was wrong.'},
+      {name:'P. Osei', stars:4, days:11, text:'Good work on a cracked screen replacement, took a little longer than quoted.'},
+      {name:'R. Chen', stars:5, days:40, text:'Reliable for the third time now — my go-to for anything laptop related.'},
+    ],
+  },
+  {
+    id:'p2', name:'ClearFix Mobile Lab', category:'tech', initials:'CF',
+    services:['Mobile Repair','Screen Replacement','Battery Service'],
+    city:'Elm Street Market', priceFrom:400, priceTo:1200,
+    identityVerified:true, contactVerified:true, yearsActive:3,
+    jobsCompleted:86, jobsAccepted:96, avgResponseMins:15,
+    reviews:[
+      {name:'D. Nolan', stars:4, days:2, text:'Screen looks brand new, done within the hour.'},
+      {name:'S. Kim', stars:2, days:5, text:'Battery still drains fast after the replacement, waiting on a follow-up.'},
+      {name:'T. Ade', stars:5, days:20, text:'Honest quote and no pressure to upsell anything extra.'},
+    ],
+  },
+  {
+    id:'p3', name:'Care Circle Cleaning', category:'home', initials:'CC',
+    services:['Home Deep Cleaning','Move-out Cleaning'],
+    city:'Oakhollow', priceFrom:500, priceTo:1800,
+    identityVerified:true, contactVerified:false, yearsActive:2,
+    jobsCompleted:64, jobsAccepted:79, avgResponseMins:48,
+    reviews:[
+      {name:'M. Farooqi', stars:5, days:6, text:'Every corner of the kitchen was spotless, would book again.'},
+      {name:'L. Bryce', stars:3, days:9, text:'Arrived an hour late but did a thorough job once here.'},
+    ],
+  },
+  {
+    id:'p4', name:'Vikram Maths Tuition', category:'learn', initials:'VM',
+    services:['Maths Tuition','Exam Prep'],
+    city:'College Quarter', priceFrom:250, priceTo:500,
+    identityVerified:true, contactVerified:true, yearsActive:7,
+    jobsCompleted:203, jobsAccepted:207, avgResponseMins:60,
+    reviews:[
+      {name:'Parent — Ishaan', stars:5, days:4, text:'My son went from struggling to confident in a semester.'},
+      {name:'Parent — Rhea', stars:5, days:18, text:'Structured lesson plans and always punctual for sessions.'},
+      {name:'Parent — Omar', stars:4, days:55, text:'Solid teaching, sessions occasionally run a bit short.'},
+    ],
+  },
+  {
+    id:'p5', name:'AutoCare Bike Services', category:'vehicle', initials:'AB',
+    services:['Bike Servicing','Tyre Replacement'],
+    city:'Riverbend District', priceFrom:200, priceTo:900,
+    identityVerified:false, contactVerified:true, yearsActive:1,
+    jobsCompleted:31, jobsAccepted:44, avgResponseMins:90,
+    // Suspicious burst: 6 five-star reviews within 2 days, near-identical wording — used by the anomaly flagger
+    reviews:[
+      {name:'user_442', stars:5, days:1, text:'Best service ever amazing great work highly recommend!'},
+      {name:'user_881', stars:5, days:1, text:'Best service ever amazing great work highly recommend!'},
+      {name:'user_119', stars:5, days:1, text:'Amazing great work best service ever highly recommend!'},
+      {name:'user_763', stars:5, days:2, text:'Highly recommend amazing best service great work ever!'},
+      {name:'user_204', stars:1, days:30, text:'Never showed up for the scheduled appointment.'},
+    ],
+  },
+  {
+    id:'p6', name:'Solstice Home Electrical', category:'home', initials:'SE',
+    services:['Electrician','Wiring & Fixtures'],
+    city:'Oakhollow', priceFrom:350, priceTo:1500,
+    identityVerified:true, contactVerified:true, yearsActive:9,
+    jobsCompleted:311, jobsAccepted:318, avgResponseMins:19,
+    reviews:[
+      {name:'B. Salgado', stars:5, days:1, text:'Diagnosed a wiring fault two other electricians missed.'},
+      {name:'H. Umar', stars:5, days:14, text:'Clean, code-compliant work and fair pricing.'},
+      {name:'G. Voss', stars:4, days:70, text:'Good work, communication could be a bit faster.'},
+    ],
+  },
+];
+
+/* ---------- Trust score engine (the platform's core differentiator) ----------
+   Weighted composite of four transparent signals, plus a rule-based
+   penalty when review activity looks manipulated (burst + duplicate text).
+   This mirrors the synopsis's "transparent trust-score mechanism". */
+function reviewAnomalyPenalty(reviews){
+  const recent = reviews.filter(r=>r.days<=3);
+  if(recent.length<4) return {penalty:0, flagged:false};
+  const texts = recent.map(r=>r.text.toLowerCase().replace(/[^a-z ]/g,'').split(' ').sort().join(' '));
+  const uniqueShapes = new Set(texts.map(t=>t.slice(0,25)));
+  const sameStar = recent.every(r=>r.stars===recent[0].stars);
+  if(uniqueShapes.size <= Math.ceil(recent.length/2) && sameStar){
+    return {penalty:28, flagged:true, count:recent.length};
+  }
+  return {penalty:0, flagged:false};
+}
+function completionRate(p){ return p.jobsAccepted ? p.jobsCompleted/p.jobsAccepted : 0; }
+function avgStars(p){ return p.reviews.reduce((s,r)=>s+r.stars,0)/p.reviews.length; }
+function computeTrust(p){
+  const idScore = (p.identityVerified?20:0) + (p.contactVerified?10:0); // 30 max
+  const compScore = Math.round(completionRate(p)*30); // 30 max
+  const starScore = Math.round((avgStars(p)/5)*25); // 25 max
+  const tenureScore = Math.min(15, p.yearsActive*2); // 15 max
+  const anomaly = reviewAnomalyPenalty(p.reviews);
+  let total = idScore+compScore+starScore+tenureScore-anomaly.penalty;
+  total = Math.max(0, Math.min(100, total));
+  return {total, idScore, compScore, starScore, tenureScore, anomaly};
+}
+
+/* ---------- Storage-backed state ---------- */
+const S = window.storage;
+let STATE = {
+  user: null,           // {name, email, role}
+  bookings: [],
+  savedProviders: [],
+  view: 'home',
+  params: {},
+  searchQuery: '',
+  loading: true,
+};
+
+async function loadUser(){
+  try{ const r = await S.get('user'); return r? JSON.parse(r.value): null; }catch(e){ return null; }
+}
+async function saveUser(u){ try{ await S.set('user', JSON.stringify(u)); }catch(e){} }
+async function loadBookings(){
+  try{ const r = await S.get('bookings'); return r? JSON.parse(r.value): []; }catch(e){ return []; }
+}
+async function saveBookings(b){ try{ await S.set('bookings', JSON.stringify(b)); }catch(e){} }
+async function loadSaved(){
+  try{ const r = await S.get('saved_providers'); return r? JSON.parse(r.value): []; }catch(e){ return []; }
+}
+async function saveSaved(s){ try{ await S.set('saved_providers', JSON.stringify(s)); }catch(e){} }
+
+async function initState(){
+  const [u,b,sv] = await Promise.all([loadUser(), loadBookings(), loadSaved()]);
+  STATE.user = u; STATE.bookings = b; STATE.savedProviders = sv; STATE.loading = false;
+  route();
+}
+
+/* ---------- Tiny hash router ---------- */
+function go(view, params={}){
+  STATE.view = view; STATE.params = params;
+  render();
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+function route(){ render(); }
+
+/* ---------- Helpers ---------- */
+function esc(s){ return (s+'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function providerById(id){ return PROVIDERS.find(p=>p.id===id); }
+function daysAgo(n){ return n===0?'today': n===1?'1 day ago': n+' days ago'; }
+function fmtDate(d){ return d.toLocaleDateString(undefined,{day:'2-digit',month:'short',year:'numeric'}); }
+
+/* ---------- App shell ---------- */
+function render(){
+  const app = document.getElementById('app');
+  app.innerHTML = navHTML() + `<main id="main">${viewHTML()}</main>` + footerHTML();
+  bindGlobalEvents();
+  bindViewEvents();
+}
+
+function navHTML(){
+  const u = STATE.user;
+  const links = [
+    ['home','Home'], ['search','Services'], ['about','How it works'],
+  ];
+  const active = STATE.view;
+  return `
+  <div class="nav">
+    <div class="brand" data-nav="home" style="cursor:pointer">
+      <div class="mark">T</div>
+      <div class="word">Trust<span>Hub</span></div>
+    </div>
+    <div class="nav-links">
+      ${links.map(([v,l])=>`<a href="#" data-nav="${v}" class="${active===v?'active':''}">${l}</a>`).join('')}
+      ${u? `<a href="#" data-nav="${u.role==='provider'?'dashProvider':(u.role==='admin'?'dashAdmin':'dashCustomer')}" class="${active.startsWith('dash')?'active':''}">Dashboard</a>`:''}
+    </div>
+    <div class="nav-right">
+      ${u ? `
+        <div class="avatar" title="${esc(u.name)}">${esc(u.name.slice(0,1).toUpperCase())}</div>
+        <button class="navbtn ghost" data-action="logout">Log out</button>
+      ` : `
+        <button class="navbtn ghost" data-nav="auth" data-authtab="login">Log in</button>
+        <button class="navbtn solid" data-nav="auth" data-authtab="signup">Sign up</button>
+      `}
+    </div>
+  </div>`;
+}
+
+function footerHTML(){
+  return `<div class="footer"><div class="footer-inner">
+    <span>TrustHub — verification-first local services.</span>
+    <span>Prototype build · not a live marketplace</span>
+  </div></div>`;
+}
+
+function bindGlobalEvents(){
+  document.querySelectorAll('[data-nav]').forEach(el=>{
+    el.addEventListener('click', e=>{
+      e.preventDefault();
+      const v = el.getAttribute('data-nav');
+      const p = {};
+      if(el.hasAttribute('data-authtab')) p.tab = el.getAttribute('data-authtab');
+      go(v, p);
+    });
+  });
+  const logoutBtn = document.querySelector('[data-action="logout"]');
+  if(logoutBtn) logoutBtn.addEventListener('click', async ()=>{
+    STATE.user = null; await saveUser(null); go('home');
+  });
+}
+
+/* ============================================================
+   VIEW ROUTER
+   ============================================================ */
+function viewHTML(){
+  if(STATE.loading) return `<div class="empty-state">Loading TrustHub…</div>`;
+  switch(STATE.view){
+    case 'home': return homeView();
+    case 'search': return searchView();
+    case 'provider': return providerView();
+    case 'book': return bookingView();
+    case 'auth': return authView();
+    case 'dashCustomer': return dashCustomerView();
+    case 'dashProvider': return dashProviderView();
+    case 'dashAdmin': return dashAdminView();
+    case 'about': return aboutView();
+    default: return homeView();
+  }
+}
+
+/* ---------- HOME ---------- */
+function homeView(){
+  const topPick = PROVIDERS.slice().sort((a,b)=>computeTrust(b).total-computeTrust(a).total)[0];
+  const t = computeTrust(topPick);
+  return `
+  <section class="hero">
+    <div>
+      <div class="eyebrow-seal">◈ Verification-first marketplace</div>
+      <h1 class="serif">Hire local help you can actually verify.</h1>
+      <p class="lead">Every provider on TrustHub carries a transparent trust score built from identity checks, completed work, and review behavior — not just a star rating.</p>
+      <form id="homeSearchForm">
+        <div class="search-bar">
+          <input type="text" id="homeSearchInput" placeholder="Try “laptop repair” or “home cleaning”" />
+          <button type="submit">Search</button>
+        </div>
+      </form>
+      <div class="chip-row">
+        <a href="#" data-cat="tech" class="chip catlink">Laptop repair</a>
+        <a href="#" data-cat="home" class="chip catlink">Home cleaning</a>
+        <a href="#" data-cat="learn" class="chip catlink">Maths tuition</a>
+        <a href="#" data-cat="vehicle" class="chip catlink">Bike servicing</a>
+      </div>
+      <div class="stat-row">
+        <div class="stat"><b>${PROVIDERS.length*200+400}+</b><span>Verified providers</span></div>
+        <div class="stat"><b>${PROVIDERS.reduce((s,p)=>s+p.jobsCompleted,0)}+</b><span>Services completed</span></div>
+        <div class="stat"><b>${(PROVIDERS.reduce((s,p)=>s+avgStars(p),0)/PROVIDERS.length).toFixed(1)}/5</b><span>Average rating</span></div>
+      </div>
+    </div>
+    <div class="hero-card">
+      <div class="seal-big"><b>${t.total}</b><span>TRUST SCORE</span></div>
+      <h3 class="serif">${esc(topPick.name)}</h3>
+      <p>Highest-trust provider on the platform this week</p>
+      <div class="factor-list">
+        <div class="factor"><span class="fname">Identity & contact verified</span><span class="fval">${t.idScore}/30</span></div>
+        <div class="factor"><span class="fname">Job completion rate</span><span class="fval">${t.compScore}/30</span></div>
+        <div class="factor"><span class="fname">Review quality</span><span class="fval">${t.starScore}/25</span></div>
+        <div class="factor"><span class="fname">Platform tenure</span><span class="fval">${t.tenureScore}/15</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="cat-section">
+    <div class="section-head"><h2 class="serif">Browse by category</h2></div>
+    <div class="cat-grid">
+      ${CATEGORIES.map(c=>`
+        <a href="#" class="cat-card catlink" data-cat="${c.id}">
+          <div class="ic">${c.icon}</div>
+          <div class="name">${esc(c.name)}</div>
+          <div class="count">${c.count} providers</div>
+        </a>`).join('')}
+    </div>
+  </section>
+
+  <section class="how-section">
+    <div class="section-head"><h2 class="serif">How the trust score works</h2></div>
+    <div class="how-grid">
+      <div class="how-step"><div class="num">Verification</div><h4 class="serif">Identity & contact checks</h4><p>Every provider's identity and contact details are checked before they can accept bookings.</p></div>
+      <div class="how-step"><div class="num">Track record</div><h4 class="serif">Completion & tenure</h4><p>Completion rate and time on the platform carry more weight than any single review.</p></div>
+      <div class="how-step"><div class="num">Anomaly checks</div><h4 class="serif">Review-pattern flags</h4><p>Bursts of near-identical reviews are detected automatically and pulled from the score.</p></div>
+    </div>
+  </section>
+  `;
+}
+
+/* ---------- SEARCH ---------- */
+function searchView(){
+  const q = (STATE.searchQuery||'').toLowerCase();
+  const cat = STATE.params.cat;
+  let list = PROVIDERS.filter(p=>{
+    const matchesQ = !q || p.name.toLowerCase().includes(q) || p.services.some(s=>s.toLowerCase().includes(q)) || p.category.includes(q);
+    const matchesCat = !cat || p.category===cat;
+    return matchesQ && matchesCat;
+  });
+  const sortBy = STATE.params.sort || 'trust';
+  list = list.map(p=>({p, t:computeTrust(p)}));
+  if(sortBy==='trust') list.sort((a,b)=>b.t.total-a.t.total);
+  if(sortBy==='price') list.sort((a,b)=>a.p.priceFrom-b.p.priceFrom);
+  if(sortBy==='reviews') list.sort((a,b)=>avgStars(b.p)-avgStars(a.p));
+
+  const label = q ? `“${esc(STATE.searchQuery)}”` : (cat? CATEGORIES.find(c=>c.id===cat)?.name : 'All services');
+
+  return `
+  <section class="search-top">
+    <h2 class="serif">Search results</h2>
+    <div class="meta">Showing ${list.length} providers for ${label}</div>
+  </section>
+  <div class="search-layout">
+    <aside class="filter-box">
+      <h4 class="serif">Category</h4>
+      <div class="filter-group">
+        ${CATEGORIES.map(c=>`
+          <label class="filter-opt"><input type="checkbox" data-filtercat="${c.id}" ${cat===c.id?'checked':''}/> ${esc(c.name)}</label>
+        `).join('')}
+      </div>
+      <h4 class="serif">Verification</h4>
+      <div class="filter-group">
+        <label class="filter-opt"><input type="checkbox" id="filterVerified"/> Identity verified only</label>
+      </div>
+      <h4 class="serif">Minimum trust score</h4>
+      <div class="filter-group">
+        <input type="range" min="0" max="100" value="0" id="trustSlider" style="width:100%"/>
+        <div style="font-size:12.5px;color:var(--slate);margin-top:6px" id="trustSliderVal">Any</div>
+      </div>
+    </aside>
+    <div class="results-col">
+      <div class="sort-row">
+        <select id="sortSelect">
+          <option value="trust" ${sortBy==='trust'?'selected':''}>Sort: Highest trust score</option>
+          <option value="reviews" ${sortBy==='reviews'?'selected':''}>Sort: Highest rated</option>
+          <option value="price" ${sortBy==='price'?'selected':''}>Sort: Lowest price</option>
+        </select>
+      </div>
+      ${list.length ? list.map(({p,t})=>providerCardHTML(p,t)).join('') : `<div class="empty-state">No providers match this search yet. Try a different keyword or clear filters.</div>`}
+    </div>
+  </div>
+  `;
+}
+
+function providerCardHTML(p,t){
+  return `
+  <div class="provider-card">
+    <div class="p-thumb">${esc(p.initials)}</div>
+    <div class="p-body">
+      <h3 class="serif catlink" data-provider="${p.id}" style="cursor:pointer">${esc(p.name)}</h3>
+      <div class="p-meta">${esc(p.city)} · ${avgStars(p).toFixed(1)} ★ (${p.reviews.length} reviews) · ${p.jobsCompleted}+ jobs done</div>
+      <div class="p-tags">${p.services.slice(0,3).map(s=>`<span class="p-tag">${esc(s)}</span>`).join('')}</div>
+    </div>
+    <div class="p-side">
+      <div class="trust-pill">◈ ${t.total}/100</div>
+      ${p.identityVerified? `<div class="verified-pill">✓ Verified provider</div>`: ''}
+      <div class="price-tag">From <b>₹${p.priceFrom}</b></div>
+      <button class="btn-primary" data-provider="${p.id}">View profile</button>
+    </div>
+  </div>`;
+}
+
+/* ---------- PROVIDER PROFILE ---------- */
+function providerView(){
+  const p = providerById(STATE.params.id);
+  if(!p) return `<div class="empty-state">Provider not found. <a href="#" data-nav="search" class="small-link">Back to search</a></div>`;
+  const t = computeTrust(p);
+  const tab = STATE.params.tab || 'overview';
+  const isSaved = STATE.savedProviders.includes(p.id);
+
+  return `
+  <a href="#" data-nav="search" class="back-link">← Back to results</a>
+  <section class="profile-hero">
+    <div>
+      <div class="profile-head">
+        <div class="profile-mark">${esc(p.initials)}</div>
+        <div>
+          <h1 class="serif">${esc(p.name)}</h1>
+          <div class="sub">${p.services.join(' · ')}</div>
+          <div class="sub">${esc(p.city)} · ${p.identityVerified? 'Identity verified':'Not yet verified'}</div>
+        </div>
+      </div>
+      <div class="tab-row">
+        ${['overview','reviews','q&a'].map(tb=>`<a href="#" data-ptab="${tb}" class="tab ${tab===tb?'active':''}">${tb[0].toUpperCase()+tb.slice(1)}</a>`).join('')}
+      </div>
+      ${tab==='overview' ? `
+        <p style="color:var(--slate);line-height:1.6;font-size:14.5px;max-width:56ch">
+          ${esc(p.name)} has completed ${p.jobsCompleted} jobs on TrustHub across ${p.yearsActive} year${p.yearsActive===1?'':'s'} on the platform,
+          offering ${p.services.join(', ').toLowerCase()} in the ${esc(p.city)} area.
+        </p>
+        <div class="info-grid">
+          <div class="info-box"><div class="k">Years active</div><div class="v">${p.yearsActive}</div></div>
+          <div class="info-box"><div class="k">Jobs completed</div><div class="v">${p.jobsCompleted}</div></div>
+          <div class="info-box"><div class="k">Completion rate</div><div class="v">${Math.round(completionRate(p)*100)}%</div></div>
+          <div class="info-box"><div class="k">Avg. response time</div><div class="v">${p.avgResponseMins}m</div></div>
+        </div>
+      ` : tab==='reviews' ? `
+        <div>
+          ${p.reviews.map(r=>`
+            <div class="review-item">
+              <div class="r-top"><span class="r-name">${esc(r.name)}</span><span>${daysAgo(r.days)}</span></div>
+              <div class="stars">${'★'.repeat(r.stars)}${'☆'.repeat(5-r.stars)}</div>
+              <p>${esc(r.text)}</p>
+            </div>`).join('')}
+          ${t.anomaly.flagged? `<div class="msg-err" style="margin-top:12px">This provider has an unusual concentration of similar reviews in a short window. It has been factored into the trust score below.</div>`:''}
+        </div>
+      ` : `
+        <div class="empty-state">No questions have been asked yet. Booking customers will be able to ask questions here.</div>
+      `}
+    </div>
+
+    <div class="trust-card">
+      <div class="seal-big" style="margin:0 auto 14px"><b>${t.total}</b><span>TRUST SCORE</span></div>
+      <div class="trust-breakdown">
+        ${trustRow('Identity & contact', t.idScore, 30)}
+        ${trustRow('Completion rate', t.compScore, 30)}
+        ${trustRow('Review quality', t.starScore, 25)}
+        ${trustRow('Platform tenure', t.tenureScore, 15)}
+        ${t.anomaly.flagged? `<div class="tb-row"><div class="tb-top" style="color:var(--clay)"><span>Anomaly penalty</span><span>−${t.anomaly.penalty}</span></div></div>`:''}
+      </div>
+      <button class="btn-primary" style="width:100%;margin-bottom:10px" data-book="${p.id}">Book this service</button>
+      <button class="btn-outline" style="width:100%" data-save="${p.id}">${isSaved? '★ Saved':'☆ Save for later'}</button>
+    </div>
+  </section>
+  `;
+}
+function trustRow(label, val, max){
+  return `<div class="tb-row">
+    <div class="tb-top"><span>${label}</span><span>${val}/${max}</span></div>
+    <div class="tb-bar"><div class="tb-fill" style="width:${(val/max)*100}%"></div></div>
+  </div>`;
+}
+
+/* ---------- BOOKING FLOW ---------- */
+function bookingView(){
+  const p = providerById(STATE.params.id);
+  if(!p) return `<div class="empty-state">Provider not found.</div>`;
+  const step = STATE.params.step || 1;
+  const draft = STATE.params.draft || {service:p.services[0], notes:'', date:'', time:'10:00'};
+
+  if(step===5){
+    return `
+    <div class="booking-wrap">
+      <div class="done-box">
+        <div class="ok-mark">✓</div>
+        <h2 class="serif">Booking request sent</h2>
+        <p>${esc(p.name)} will confirm your ${esc(draft.service)} request shortly. Track it from your dashboard.</p>
+        <button class="btn-primary" data-nav="dashCustomer">Go to my dashboard</button>
+      </div>
+    </div>`;
+  }
+
+  const steps = ['Details','Schedule','Confirm','Payment','Done'];
+  return `
+  <div class="booking-wrap">
+    <div class="step-track">
+      ${steps.map((s,i)=>{
+        const n=i+1; const state = n<step?'done': n===step?'active':'';
+        return `<div style="display:flex;align-items:center">
+          <div style="text-align:center">
+            <div class="step-dot ${state}">${n<step?'✓':n}</div>
+            <div class="step-label">${s}</div>
+          </div>
+          ${i<steps.length-1?`<div class="step-line ${n<step?'done':''}"></div>`:''}
+        </div>`;
+      }).join('')}
+    </div>
+    <div class="booking-grid">
+      <div class="form-card">
+        ${bookingStepForm(p, step, draft)}
+      </div>
+      <div class="summary-card">
+        <h4 class="serif">Booking summary</h4>
+        <div class="summary-row"><span class="k">Provider</span><span class="v">${esc(p.name)}</span></div>
+        <div class="summary-row"><span class="k">Service</span><span class="v">${esc(draft.service)}</span></div>
+        <div class="summary-row"><span class="k">Estimated price</span><span class="v">₹${p.priceFrom}–₹${p.priceTo}</span></div>
+        <div class="summary-row"><span class="k">Preferred date</span><span class="v">${draft.date||'—'}</span></div>
+        <div class="summary-row"><span class="k">Preferred time</span><span class="v">${draft.time||'—'}</span></div>
+        <div class="summary-row"><span class="k">Trust score</span><span class="v">◈ ${computeTrust(p).total}/100</span></div>
+      </div>
+    </div>
+  </div>`;
+}
+function bookingStepForm(p, step, draft){
+  if(step===1){
+    return `
+    <h3 class="serif">Service details</h3>
+    <div class="field"><label>Service type</label>
+      <select id="bkService">${p.services.map(s=>`<option ${s===draft.service?'selected':''}>${esc(s)}</option>`).join('')}</select>
+    </div>
+    <div class="field"><label>Describe the issue</label>
+      <textarea id="bkNotes" placeholder="e.g. laptop won't power on, screen flickers when opened...">${esc(draft.notes)}</textarea>
+    </div>
+    <button class="btn-primary btn-block" data-bkstep="2">Next: Schedule</button>`;
+  }
+  if(step===2){
+    return `
+    <h3 class="serif">Schedule</h3>
+    <div class="field"><label>Preferred date</label><input type="date" id="bkDate" value="${draft.date}"/></div>
+    <div class="field"><label>Preferred time</label>
+      <select id="bkTime">
+        ${['09:00','11:00','14:00','16:00','18:00'].map(t=>`<option ${t===draft.time?'selected':''}>${t}</option>`).join('')}
+      </select>
+    </div>
+    <button class="btn-primary btn-block" data-bkstep="3">Next: Confirm</button>`;
+  }
+  if(step===3){
+    return `
+    <h3 class="serif">Confirm your request</h3>
+    <p style="font-size:14px;color:var(--slate);line-height:1.6">
+      You're requesting <b>${esc(draft.service)}</b> from <b>${esc(p.name)}</b>${draft.date?` on <b>${esc(draft.date)}</b> at <b>${esc(draft.time)}</b>`:''}.
+      The provider will confirm availability before payment is due.
+    </p>
+    <button class="btn-primary btn-block" data-bkstep="4">Next: Payment</button>`;
+  }
+  if(step===4){
+    return `
+    <h3 class="serif">Payment</h3>
+    <p style="font-size:14px;color:var(--slate);margin-bottom:16px">This prototype does not process real payments. Confirming will save your booking to your dashboard.</p>
+    <div class="field"><label>Payment method</label>
+      <select><option>Pay after service (cash/UPI)</option><option>Card on file</option></select>
+    </div>
+    <button class="btn-primary btn-block" data-bkconfirm="1">Confirm booking</button>`;
+  }
+  return '';
+}
+
+/* ---------- AUTH ---------- */
+function authView(){
+  const tab = STATE.params.tab || 'login';
+  const err = STATE.params.error;
+  return `
+  <div class="auth-wrap">
+    <div class="auth-card">
+      <div class="auth-tabs">
+        <a href="#" data-authswitch="login" class="auth-tab ${tab==='login'?'active':''}">Log in</a>
+        <a href="#" data-authswitch="signup" class="auth-tab ${tab==='signup'?'active':''}">Sign up</a>
+      </div>
+      ${tab==='login' ? `
+        <h2 class="serif">Welcome back</h2>
+        <div class="sub">Log in to manage bookings and messages.</div>
+        ${err?`<div class="msg-err">${esc(err)}</div>`:''}
+        <div class="field"><label>Email</label><input type="email" id="authEmail" placeholder="you@example.com"/></div>
+        <div class="field"><label>Password</label><input type="password" id="authPassword" placeholder="Enter your password"/></div>
+        <button class="btn-primary btn-block" data-action="login">Log in</button>
+      ` : `
+        <h2 class="serif">Create your account</h2>
+        <div class="sub">Join TrustHub as a customer or a service provider.</div>
+        ${err?`<div class="msg-err">${esc(err)}</div>`:''}
+        <div class="role-pick">
+          <div class="role-opt ${(STATE.params.role||'customer')==='customer'?'active':''}" data-roleopt="customer">I need services</div>
+          <div class="role-opt ${STATE.params.role==='provider'?'active':''}" data-roleopt="provider">I offer services</div>
+        </div>
+        <div class="field"><label>Full name</label><input type="text" id="authName" placeholder="Your name"/></div>
+        <div class="field"><label>Email</label><input type="email" id="authEmail2" placeholder="you@example.com"/></div>
+        <div class="field"><label>Password</label><input type="password" id="authPassword2" placeholder="Create a password"/></div>
+        <button class="btn-primary btn-block" data-action="signup">Create account</button>
+      `}
+    </div>
+  </div>`;
+}
+
+/* ---------- CUSTOMER DASHBOARD ---------- */
+function requireAuth(role){
+  if(!STATE.user) return authView.__redirect = true;
+}
+function dashCustomerView(){
+  if(!STATE.user) return authGate();
+  const myBookings = STATE.bookings.filter(b=>b.userEmail===STATE.user.email);
+  const saved = STATE.savedProviders.map(id=>providerById(id)).filter(Boolean);
+  const completed = myBookings.filter(b=>b.status==='Completed').length;
+
+  return dashShell('customer', `
+    <div class="dash-head"><h2 class="serif">Welcome back, ${esc(STATE.user.name.split(' ')[0])}</h2><div class="sub">Here's what's happening with your bookings.</div></div>
+    <div class="kpi-grid">
+      <div class="kpi-card"><div class="kv">${myBookings.filter(b=>b.status!=='Completed').length}</div><div class="kl">Active bookings</div></div>
+      <div class="kpi-card"><div class="kv">${completed}</div><div class="kl">Completed services</div></div>
+      <div class="kpi-card"><div class="kv">${saved.length}</div><div class="kl">Saved providers</div></div>
+      <div class="kpi-card"><div class="kv">${saved.length? (saved.reduce((s,p)=>s+avgStars(p),0)/saved.length).toFixed(1):'—'}</div><div class="kl">Avg. saved rating</div></div>
+    </div>
+    <div class="panel">
+      <h3 class="serif">Recent bookings</h3>
+      ${myBookings.length? myBookings.slice().reverse().map(b=>`
+        <div class="list-row">
+          <div class="lr-main"><b>${esc(b.service)}</b><span>${esc(b.providerName)} · ${esc(b.date||'date pending')}</span></div>
+          <span class="status-pill status-${b.status.toLowerCase().replace(' ','')}">${esc(b.status)}</span>
+        </div>`).join('') : `<div class="empty-state">No bookings yet. <a href="#" data-nav="search" class="small-link">Browse services</a> to get started.</div>`}
+    </div>
+    <div class="panel">
+      <h3 class="serif">Saved providers</h3>
+      ${saved.length? saved.map(p=>`
+        <div class="list-row">
+          <div class="lr-main"><b class="catlink" data-provider="${p.id}" style="cursor:pointer">${esc(p.name)}</b><span>${p.services[0]} · ◈ ${computeTrust(p).total}/100</span></div>
+          <button class="btn-outline" data-provider="${p.id}">View</button>
+        </div>`).join('') : `<div class="empty-state">Save providers you like to find them quickly next time.</div>`}
+    </div>
+  `);
+}
+
+function authGate(){
+  return `<div class="empty-state" style="padding:80px 20px">
+    Log in to see your dashboard.<br/><br/>
+    <button class="btn-primary" data-nav="auth" data-authtab="login">Log in</button>
+  </div>`;
+}
+
+/* ---------- PROVIDER DASHBOARD ---------- */
+function dashProviderView(){
+  if(!STATE.user) return authGate();
+  // Demo provider profile tied to the logged-in provider account
+  const demoProvider = PROVIDERS[0];
+  const t = computeTrust(demoProvider);
+  const relevantBookings = STATE.bookings.filter(b=>b.providerId===demoProvider.id);
+
+  return dashShell('provider', `
+    <div class="dash-head"><h2 class="serif">Welcome, ${esc(STATE.user.name.split(' ')[0])}</h2><div class="sub">Managing ${esc(demoProvider.name)}</div></div>
+    <div class="kpi-grid">
+      <div class="kpi-card"><div class="kv">${demoProvider.jobsCompleted}</div><div class="kl">Services completed</div></div>
+      <div class="kpi-card"><div class="kv">${relevantBookings.filter(b=>b.status!=='Completed').length}</div><div class="kl">Active bookings</div></div>
+      <div class="kpi-card"><div class="kv">${avgStars(demoProvider).toFixed(1)}</div><div class="kl">Average rating</div></div>
+      <div class="kpi-card"><div class="kv">${t.total}</div><div class="kl">Trust score</div></div>
+    </div>
+    <div class="panel">
+      <h3 class="serif">Incoming bookings</h3>
+      ${relevantBookings.length? relevantBookings.slice().reverse().map(b=>`
+        <div class="list-row">
+          <div class="lr-main"><b>${esc(b.service)}</b><span>${esc(b.userName)} · ${esc(b.date||'date pending')}</span></div>
+          <span class="status-pill status-${b.status.toLowerCase().replace(' ','')}">${esc(b.status)}</span>
+        </div>`).join('') : `<div class="empty-state">No booking requests yet.</div>`}
+    </div>
+    <div class="panel">
+      <h3 class="serif">Trust score breakdown</h3>
+      ${trustRow('Identity & contact', t.idScore, 30)}
+      ${trustRow('Completion rate', t.compScore, 30)}
+      ${trustRow('Review quality', t.starScore, 25)}
+      ${trustRow('Platform tenure', t.tenureScore, 15)}
+    </div>
+  `);
+}
+
+/* ---------- ADMIN DASHBOARD ---------- */
+function dashAdminView(){
+  if(!STATE.user) return authGate();
+  const flagged = PROVIDERS.map(p=>({p, a:reviewAnomalyPenalty(p.reviews)})).filter(x=>x.a.flagged);
+  const totalUsers = 1248, totalBookings = STATE.bookings.length + 176;
+
+  return dashShell('admin', `
+    <div class="dash-head"><h2 class="serif">System overview</h2><div class="sub">Platform-wide activity and integrity signals.</div></div>
+    <div class="kpi-grid">
+      <div class="kpi-card"><div class="kv">${totalUsers}</div><div class="kl">Total users</div></div>
+      <div class="kpi-card"><div class="kv">${PROVIDERS.filter(p=>p.identityVerified).length}/${PROVIDERS.length}</div><div class="kl">Verified providers</div></div>
+      <div class="kpi-card"><div class="kv">${totalBookings}</div><div class="kl">Total bookings</div></div>
+      <div class="kpi-card"><div class="kv">${flagged.length}</div><div class="kl">Flagged activities</div></div>
+    </div>
+    <div class="panel">
+      <h3 class="serif">Flagged activity — rule-based review anomalies</h3>
+      ${flagged.length? flagged.map(({p,a})=>`
+        <div class="flag-row">
+          <div class="lr-main"><b>${esc(p.name)}</b><span>${a.count} near-identical reviews posted within a short window</span></div>
+          <span class="flag-sev sev-high">High</span>
+        </div>`).join('') : `<div class="empty-state">No anomalies detected right now.</div>`}
+    </div>
+    <div class="panel">
+      <h3 class="serif">Provider verification queue</h3>
+      ${PROVIDERS.filter(p=>!p.identityVerified).map(p=>`
+        <div class="list-row">
+          <div class="lr-main"><b>${esc(p.name)}</b><span>Identity verification pending</span></div>
+          <span class="status-pill status-pending">Pending</span>
+        </div>`).join('') || `<div class="empty-state">All providers are verified.</div>`}
+    </div>
+  `);
+}
+
+function dashShell(role, content){
+  const items = {
+    customer: [['dashCustomer','Dashboard'],['search','Book a service']],
+    provider: [['dashProvider','Dashboard'],['search','View marketplace']],
+    admin: [['dashAdmin','Dashboard'],['search','View marketplace']],
+  }[role];
+  return `<div class="dash-layout">
+    <nav class="side-nav">
+      ${items.map(([v,l])=>`<a href="#" data-nav="${v}" class="${STATE.view===v?'active':''}">${l}</a>`).join('')}
+    </nav>
+    <div>${content}</div>
+  </div>`;
+}
+
+/* ---------- ABOUT ---------- */
+function aboutView(){
+  return `
+  <section style="padding:44px 0;max-width:70ch">
+    <h2 class="serif" style="font-size:30px;color:var(--ink)">How TrustHub works</h2>
+    <p style="color:var(--slate);line-height:1.7;font-size:15px;margin-bottom:20px">
+      TrustHub combines identity verification, completed-job history, review quality, and a rule-based
+      anomaly check into one transparent trust score, shown on every provider profile. Customers search,
+      compare providers side by side, book directly, and leave reviews after the work is done. Providers
+      manage their bookings and see exactly which factors make up their score.
+    </p>
+    <p style="color:var(--slate);line-height:1.7;font-size:15px">
+      This build is a functioning front-end prototype: bookings, saved providers, and your account persist
+      in your browser session, and the trust score is computed live from each provider's underlying data
+      rather than hardcoded per profile.
+    </p>
+  </section>`;
+}
+
+/* ============================================================
+   EVENT BINDING per-view
+   ============================================================ */
+function bindViewEvents(){
+  // category links (home + search)
+  document.querySelectorAll('.catlink[data-cat]').forEach(el=>{
+    el.addEventListener('click', e=>{ e.preventDefault(); STATE.searchQuery=''; go('search', {cat: el.getAttribute('data-cat')}); });
+  });
+  // provider open
+  document.querySelectorAll('[data-provider]').forEach(el=>{
+    el.addEventListener('click', e=>{ e.preventDefault(); go('provider', {id: el.getAttribute('data-provider')}); });
+  });
+  // home search form
+  const hf = document.getElementById('homeSearchForm');
+  if(hf) hf.addEventListener('submit', e=>{
+    e.preventDefault();
+    STATE.searchQuery = document.getElementById('homeSearchInput').value;
+    go('search', {});
+  });
+  // search filters
+  document.querySelectorAll('[data-filtercat]').forEach(el=>{
+    el.addEventListener('change', ()=>{
+      const checked = el.checked;
+      go('search', {...STATE.params, cat: checked? el.getAttribute('data-filtercat'): undefined, sort: STATE.params.sort});
+    });
+  });
+  const sortSel = document.getElementById('sortSelect');
+  if(sortSel) sortSel.addEventListener('change', ()=> go('search', {...STATE.params, sort: sortSel.value}));
+  const trustSlider = document.getElementById('trustSlider');
+  if(trustSlider){
+    const label = document.getElementById('trustSliderVal');
+    trustSlider.addEventListener('input', ()=>{ label.textContent = trustSlider.value==='0'? 'Any' : trustSlider.value+'+'; });
+  }
+  // provider profile tabs
+  document.querySelectorAll('[data-ptab]').forEach(el=>{
+    el.addEventListener('click', e=>{ e.preventDefault(); go('provider', {...STATE.params, tab: el.getAttribute('data-ptab')}); });
+  });
+  // save provider
+  document.querySelectorAll('[data-save]').forEach(el=>{
+    el.addEventListener('click', async ()=>{
+      if(!STATE.user){ go('auth',{tab:'login', error:'Log in to save providers.'}); return; }
+      const id = el.getAttribute('data-save');
+      const idx = STATE.savedProviders.indexOf(id);
+      if(idx>-1) STATE.savedProviders.splice(idx,1); else STATE.savedProviders.push(id);
+      await saveSaved(STATE.savedProviders);
+      render();
+    });
+  });
+  // book buttons
+  document.querySelectorAll('[data-book]').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      if(!STATE.user){ go('auth',{tab:'login', error:'Log in to book a service.'}); return; }
+      go('book', {id: el.getAttribute('data-book'), step:1, draft:{service: providerById(el.getAttribute('data-book')).services[0], notes:'', date:'', time:'10:00'}});
+    });
+  });
+  // booking step nav
+  document.querySelectorAll('[data-bkstep]').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      const draft = {...STATE.params.draft};
+      const step = Number(STATE.params.step);
+      if(step===1){ draft.service = document.getElementById('bkService').value; draft.notes = document.getElementById('bkNotes').value; }
+      if(step===2){ draft.date = document.getElementById('bkDate').value; draft.time = document.getElementById('bkTime').value; }
+      go('book', {...STATE.params, step: Number(el.getAttribute('data-bkstep')), draft});
+    });
+  });
+  const confirmBtn = document.querySelector('[data-bkconfirm]');
+  if(confirmBtn) confirmBtn.addEventListener('click', async ()=>{
+    const p = providerById(STATE.params.id);
+    const draft = STATE.params.draft;
+    const booking = {
+      id: 'bk'+Date.now(), providerId: p.id, providerName: p.name,
+      userEmail: STATE.user.email, userName: STATE.user.name,
+      service: draft.service, notes: draft.notes, date: draft.date, time: draft.time,
+      status: 'Pending', createdAt: Date.now(),
+    };
+    STATE.bookings.push(booking);
+    await saveBookings(STATE.bookings);
+    go('book', {...STATE.params, step:5});
+  });
+  // auth tab switch
+  document.querySelectorAll('[data-authswitch]').forEach(el=>{
+    el.addEventListener('click', e=>{ e.preventDefault(); go('auth', {tab: el.getAttribute('data-authswitch')}); });
+  });
+  document.querySelectorAll('[data-roleopt]').forEach(el=>{
+    el.addEventListener('click', ()=>{ go('auth', {...STATE.params, role: el.getAttribute('data-roleopt')}); });
+  });
+  // login/signup actions
+  const loginBtn = document.querySelector('[data-action="login"]');
+  if(loginBtn) loginBtn.addEventListener('click', async ()=>{
+    const email = document.getElementById('authEmail').value.trim();
+    const pw = document.getElementById('authPassword').value;
+    if(!email || !pw){ go('auth',{tab:'login', error:'Enter your email and password.'}); return; }
+    // Demo auth: assign role admin@ / provider@ prefixes, else customer
+    let role = 'customer';
+    if(email.startsWith('admin')) role='admin';
+    else if(email.startsWith('provider')) role='provider';
+    const user = {name: email.split('@')[0].replace(/[._]/g,' '), email, role};
+    STATE.user = user; await saveUser(user);
+    go(role==='admin'?'dashAdmin': role==='provider'?'dashProvider':'dashCustomer');
+  });
+  const signupBtn = document.querySelector('[data-action="signup"]');
+  if(signupBtn) signupBtn.addEventListener('click', async ()=>{
+    const name = document.getElementById('authName').value.trim();
+    const email = document.getElementById('authEmail2').value.trim();
+    const pw = document.getElementById('authPassword2').value;
+    if(!name || !email || !pw){ go('auth',{tab:'signup', role: STATE.params.role, error:'Fill in all fields to continue.'}); return; }
+    const role = STATE.params.role || 'customer';
+    const user = {name, email, role};
+    STATE.user = user; await saveUser(user);
+    go(role==='admin'?'dashAdmin': role==='provider'?'dashProvider':'dashCustomer');
+  });
+}
+
+initState();
+</script>
+</body>
+</html>
