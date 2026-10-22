@@ -1,0 +1,47 @@
+Phase 1: Backend Foundation (Server, DB & Schemas)
+1. Database Schemas
+Prompt (Paste in Copilot Chat):
+"Create two Mongoose schemas in separate files under server/models/:
+1. User.js: name, email (unique, indexed), password (hashed), role ('User' | 'Admin', default 'User'), createdAt.
+2. Trust.js: trustName, trusteeName, contactEmail, contactPhone, trustType, verificationStatus ('Pending' | 'Verified' | 'Rejected', default 'Pending'), statusHistory (array of objects recording status, changedBy, and timestamp), createdBy (ref to User), createdAt.
+Include export statements using ES module syntax."
+
+2. Express Server & Database Connection
+Prompt:
+"Write a MongoDB connection function in server/config/db.js using mongoose and dotenv.
+Then create server/server.js to start an Express app with standard middlewares (express.json, cors, helmet), connect to DB, listen on process.env.PORT, and handle unhandled routes gracefully."
+
+Phase 2: Authentication & Authorization
+3. JWT & Auth Middleware
+Prompt:
+"Write two middleware functions in server/middlewares/auth.js:
+1. protect: Validates Bearer JWT token from the authorization header, decodes user payload, attaches user object to req.user.
+2. adminOnly: Checks if req.user exists and req.user.role === 'Admin', otherwise returns 403 Forbidden."
+
+4. Auth Endpoints (Register & Login)
+Prompt:
+"Create authController.js and authRoutes.js for user authentication:
+1. POST /api/auth/register: Hashes password using bcryptjs, creates user, generates JWT token.
+2. POST /api/auth/login: Validates user credentials, returns JWT token and user info.
+3. GET /api/auth/me: Returns current authenticated user data using the protect middleware."
+
+Phase 3: Core Features & RBAC (Trust Management)
+5. Trust CRUD API
+Prompt:
+"Create trustController.js and trustRoutes.js:
+1. POST /api/trusts (Protected): Creates trust entry attached to req.user._id.
+2. GET /api/trusts (Protected): Returns all trusts if Admin, or only user's trusts if standard User.
+3. PUT /api/trusts/:id (Protected): Updates trust details if owned by user or if Admin.
+4. PATCH /api/trusts/:id/verify (Admin Only): Updates verificationStatus ('Verified' or 'Rejected') and appends an entry to statusHistory."
+
+Phase 4: Frontend Development (React + Tailwind)
+6. Authentication Setup & Protected Routes
+Prompt:
+"Create a React AuthContext (src/context/AuthContext.jsx) using React Hooks to manage user login, registration, token persistence in localStorage, and logout. Then create a ProtectedRoute component that redirects unauthenticated users to /login."
+
+7. UI Components & Dashboard
+Prompt:
+"Create a responsive Tailwind CSS dashboard component (src/pages/Dashboard.jsx) with:
+1. Stat cards showing Total Trusts, Pending, and Verified counts.
+2. A search input bar and status filter dropdown ('All', 'Pending', 'Verified').
+3. A table listing trust items with badges for verificationStatus and an 'Action' button to open a modal for verification (if Admin)."

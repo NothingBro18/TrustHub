@@ -1,0 +1,29 @@
+Prompt 1: Create Backend Boilerplate Files
+Copy & Paste in Copilot Chat:
+"Generate the boilerplate starter code for the backend structure of the TrustHub MERN app:
+1. server/config/db.js: Mongoose connection setup with process.env.MONGODB_URI.
+2. server/models/User.js: User schema (name, email, password, role ['User', 'Admin']).
+3. server/models/Trust.js: Trust schema (trustName, trusteeName, contactEmail, contactPhone, trustType, verificationStatus ['Pending', 'Verified', 'Rejected'], statusHistory array, createdBy ref to User).
+4. server/server.js: Express app entry point initializing routes, CORS, Helmet, express.json, and DB connection."
+
+Prompt 2: Create Middlewares & Authentication Routes
+Copy & Paste in Copilot Chat:
+"Create backend authentication modules:
+1. server/utils/generateToken.js: Function to sign JWT token with user id and role.
+2. server/middlewares/authMiddleware.js: 'protect' middleware to verify JWT and 'adminOnly' middleware for authorization.
+3. server/controllers/authController.js: registerUser, loginUser, and getMe handler functions.
+4. server/routes/authRoutes.js: Router mounting POST /register, POST /login, and GET /me."
+
+Prompt 3: Create Trust Management Controller & Routes
+Copy & Paste in Copilot Chat:
+"Create the Trust management endpoints:
+1. server/controllers/trustController.js: Handlers for createTrust, getTrusts (filtered by role), updateTrust, and updateVerificationStatus.
+2. server/routes/trustRoutes.js: Router connecting trustController handlers with protect and adminOnly middlewares."
+
+Prompt 4: Create Frontend Services & Auth Context
+Copy & Paste in Copilot Chat:
+"Create frontend core services and state management:
+1. client/src/services/api.js: Axios instance with baseURL set to '/api' and an interceptor adding Bearer token from localStorage.
+2. client/src/services/authService.js: API wrapper functions for login, register, and fetch current user.
+3. client/src/context/AuthContext.jsx: AuthContext providing user, token, login, logout, and loading state.
+4. client/src/components/ProtectedRoute.jsx: Wrapper component checking AuthContext state and admin role requirements."

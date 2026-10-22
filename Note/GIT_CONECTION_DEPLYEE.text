@@ -1,0 +1,16 @@
+# 1. Initialize git repository (if not initialized already)
+git init
+
+# 2. Add all files to staging
+git add .
+
+# 3. Create your first commit
+git commit -m "Initial TrustHub MERN stack commit"
+
+# 4. Create main branch and link your remote repository
+# (Replace <YOUR-GITHUB-USERNAME> and <YOUR-REPO-NAME> with your actual repository link)
+git branch -M main
+git remote add origin https://github.com/<YOUR-GITHUB-USERNAME>/<YOUR-REPO-NAME>.git
+
+# 5. Push code to GitHub
+git push -u origin main

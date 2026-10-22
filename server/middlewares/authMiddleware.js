@@ -1,0 +1,1 @@
+export { adminOnly, protect } from './auth.js';
