@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { ArrowRight, ShieldCheck } from 'lucide-react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 
 const Login = () => {
@@ -43,7 +43,7 @@ const Login = () => {
   return (
     <main className="login-screen">
       <section className="login-panel" aria-labelledby="login-title">
-        <div className="brand-mark"><ShieldCheck size={21} strokeWidth={2.2} /></div>
+        <Link className="auth-brand" to="/"><span className="brand-mark"><ShieldCheck size={19} strokeWidth={2.2} /></span><span>Trust<span>Hub</span></span></Link>
         <p className="eyebrow">TRUSTHUB / SECURE ACCESS</p>
         <h1 id="login-title">Welcome back.</h1>
         <p className="login-copy">Sign in to continue to your trust workspace.</p>
@@ -62,12 +62,13 @@ const Login = () => {
           {guestSubmitting ? 'Opening sample workspace...' : 'Continue as guest'}
         </button>
         <p className="guest-note">Explore sample records in read-only mode.</p>
+        <p className="auth-switch">New to TrustHub? <Link to="/register">Create an account</Link></p>
         <p className="login-footnote">Your workspace is protected with encrypted authentication.</p>
       </section>
       <aside className="login-aside" aria-hidden="true">
         <div className="aside-grid" />
-        <p className="aside-kicker">A clearer view of trust.</p>
-        <p className="aside-number">01 <span>/ verification workspace</span></p>
+        <p className="aside-kicker">LOCAL SKILLS. REAL PEOPLE.</p>
+        <p className="aside-number">Find good help.<br /><span>Right around the corner.</span></p>
       </aside>
     </main>
   );
