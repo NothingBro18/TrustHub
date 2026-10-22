@@ -1,3 +1,11 @@
+import dns from 'node:dns';
+dns.setDefaultResultOrder('ipv4first');
+const configuredDnsServers = process.env.MONGODB_DNS_SERVERS
+  ?.split(',')
+  .map((server) => server.trim())
+  .filter(Boolean);
+if (configuredDnsServers?.length) dns.setServers(configuredDnsServers);
+
 import cors from 'cors';
 import express from 'express';
 import helmet from 'helmet';
@@ -10,8 +18,21 @@ import trustRoutes from './routes/trustRoutes.js';
 const app = express();
 
 app.use(express.json());
-app.use(cors());
+const allowedOrigins = (process.env.CLIENT_ORIGIN || '')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
+app.use(cors({
+  origin(origin, callback) {
+    if (!origin || allowedOrigins.length === 0 || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error('Origin is not allowed by CORS'));
+  },
+}));
 app.use(helmet());
+app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
 app.use('/api/auth', authRoutes);
 app.use('/api/trusts', trustRoutes);
 
