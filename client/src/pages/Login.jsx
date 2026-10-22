@@ -4,13 +4,14 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 
 const Login = () => {
-  const { login } = useAuth();
+  const { login, guestLogin } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [guestSubmitting, setGuestSubmitting] = useState(false);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -23,6 +24,19 @@ const Login = () => {
       setError(requestError.response?.data?.message || 'Unable to sign in. Check your details and try again.');
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleGuestLogin = async () => {
+    setError('');
+    setGuestSubmitting(true);
+    try {
+      await guestLogin();
+      navigate(location.state?.from?.pathname || '/dashboard', { replace: true });
+    } catch (requestError) {
+      setError(requestError.response?.data?.message || 'Guest access is currently unavailable.');
+    } finally {
+      setGuestSubmitting(false);
     }
   };
 
@@ -43,6 +57,11 @@ const Login = () => {
             {submitting ? 'Signing in...' : 'Sign in'} <ArrowRight size={17} />
           </button>
         </form>
+        <div className="login-divider"><span>OR</span></div>
+        <button className="button button-guest login-submit" type="button" onClick={handleGuestLogin} disabled={submitting || guestSubmitting}>
+          {guestSubmitting ? 'Opening sample workspace...' : 'Continue as guest'}
+        </button>
+        <p className="guest-note">Explore sample records in read-only mode.</p>
         <p className="login-footnote">Your workspace is protected with encrypted authentication.</p>
       </section>
       <aside className="login-aside" aria-hidden="true">

@@ -12,6 +12,10 @@ const editableFields = [
 const isValidId = (id) => mongoose.isValidObjectId(id);
 
 export const createTrust = async (req, res, next) => {
+  if (req.user.isGuest) {
+    return res.status(403).json({ message: 'Guest accounts are read-only' });
+  }
+
   try {
     const trust = await Trust.create({
       ...Object.fromEntries(editableFields
@@ -37,6 +41,10 @@ export const getTrusts = async (req, res, next) => {
 };
 
 export const updateTrust = async (req, res, next) => {
+  if (req.user.isGuest) {
+    return res.status(403).json({ message: 'Guest accounts are read-only' });
+  }
+
   try {
     if (!isValidId(req.params.id)) {
       return res.status(400).json({ message: 'Invalid trust id' });

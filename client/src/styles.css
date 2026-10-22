@@ -128,6 +128,11 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .login-form input { height: 43px; border: 1px solid #dce5dc; border-radius: 4px; margin: 0 0 18px; padding: 0 12px; color: #203b32; background: white; font-size: 13px; }
 .login-form input:focus { border-color: #76a98e; outline: 2px solid #d8ecde; }
 .login-submit { width: 100%; margin-top: 3px; }
+.login-divider { display: flex; align-items: center; gap: 12px; margin: 18px 0 13px; color: #a0aaa2; font: 10px var(--mono); }
+.login-divider::before, .login-divider::after { content: ''; height: 1px; flex: 1; background: #e3e9e2; }
+.button-guest { width: 100%; border: 1px solid #cdddcf; color: #315d47; background: #edf4ed; }
+.button-guest:hover:not(:disabled) { background: #e2efe4; }
+.guest-note { margin: 9px 0 0; color: #819087; font-size: 10px; text-align: center; }
 .form-error { color: #9b463a; background: #fff0ed; padding: 10px; margin: -4px 0 14px; border-radius: 3px; font-size: 11px; }
 .login-footnote { color: #98a39b; font-size: 10px; margin: 19px 0 0; }
 .login-aside { min-height: 100vh; position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; padding: 48px; background: #174538; color: #e6f1e6; }

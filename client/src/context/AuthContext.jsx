@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import {
   fetchCurrentUser,
+  loginAsGuest as guestLoginRequest,
   login as loginRequest,
   register as registerRequest,
 } from '../services/authService.js';
@@ -48,6 +49,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (credentials) => acceptSession(await loginRequest(credentials));
   const register = async (userDetails) => acceptSession(await registerRequest(userDetails));
+  const guestLogin = async () => acceptSession(await guestLoginRequest());
   const logout = () => {
     localStorage.removeItem(TOKEN_KEY);
     setToken(null);
@@ -55,7 +57,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, token, loading, login, register, guestLogin, logout }}>
       {children}
     </AuthContext.Provider>
   );
