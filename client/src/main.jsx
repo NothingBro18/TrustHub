@@ -8,7 +8,7 @@ import './marketplace-auth.css';
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <BrowserRouter>
+    <BrowserRouter basename="/TrustHub">
       <AuthProvider>
         <App />
       </AuthProvider>
