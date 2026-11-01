@@ -1,0 +1,13 @@
+{
+  "name": "trusthub-root",
+  "version": "1.0.0",
+  "description": "TrustHub — Secure Service Marketplace (MERN)",
+  "scripts": {
+    "dev:server": "cd server && npm run dev",
+    "dev:client": "cd client && npm run dev",
+    "install:all": "cd client && npm install && cd ../server && npm install",
+    "start:server": "cd server && npm start"
+  },
+  "author": "Sujal",
+  "license": "ISC"
+}
