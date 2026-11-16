@@ -6,8 +6,6 @@ exports.protect = async (req, res, next) => {
 
   if (req.headers.authorization?.startsWith('Bearer')) {
     token = req.headers.authorization.split(' ')[1];
-  } else if (req.cookies?.token) {
-    token = req.cookies.token;
   }
 
   if (!token) {
@@ -20,6 +18,15 @@ exports.protect = async (req, res, next) => {
     if (!req.user) {
       return res.status(401).json({ success: false, message: 'User not found' });
     }
+
+    // Refresh lastActiveAt and online status (throttled to once per 60 seconds)
+    const now = new Date();
+    if (!req.user.lastActiveAt || now - new Date(req.user.lastActiveAt) > 60 * 1000 || !req.user.isOnline) {
+      User.findByIdAndUpdate(req.user._id, { lastActiveAt: now, isOnline: true }).exec().catch(() => {});
+      req.user.lastActiveAt = now;
+      req.user.isOnline = true;
+    }
+
     next();
   } catch (error) {
     return res.status(401).json({ success: false, message: 'Token invalid or expired' });

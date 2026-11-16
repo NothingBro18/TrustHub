@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const {
   getStats,
+  getProviders,
   getAllUsers,
   updateUser,
   deleteUser,
@@ -11,12 +12,16 @@ const {
   resolveFlaggedActivity,
   deleteFlaggedActivity,
 } = require('../controllers/adminController');
+const { getAdminServices, updateServiceModeration } = require('../controllers/serviceController');
 const { protect, authorize } = require('../middlewares/auth');
 
 router.use(protect, authorize('admin'));
 
 router.get('/stats', getStats);
 router.get('/users', getAllUsers);
+router.get('/providers', getProviders);
+router.get('/services', getAdminServices);
+router.patch('/services/:id', updateServiceModeration);
 router.put('/users/:id', updateUser);
 router.delete('/users/:id', deleteUser);
 

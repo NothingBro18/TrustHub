@@ -1,8 +1,9 @@
 // Provider Dashboard nav items — used by DashboardLayout/Sidebar
 export const PROVIDER_NAV = [
   { label: 'Dashboard',   path: '/provider/dashboard',  icon: 'LayoutDashboard' },
-  { label: 'My Services', path: '/provider/services',   icon: 'Wrench' },
   { label: 'Bookings',    path: '/provider/bookings',   icon: 'CalendarDays' },
+  { label: 'Messages',    path: '/messages',            icon: 'MessageSquare' },
+  { label: 'My Services', path: '/provider/services',   icon: 'Wrench' },
   { label: 'Reviews',     path: '/provider/reviews',    icon: 'Star' },
   { label: 'Earnings',    path: '/provider/earnings',   icon: 'DollarSign' },
   { label: 'Profile',     path: '/provider/profile',    icon: 'User' },

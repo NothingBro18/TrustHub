@@ -1,9 +1,9 @@
-import { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, CalendarDays, Heart, MessageSquare,
   Star, User, Settings, LogOut, Shield, X, ChevronRight,
   Wrench, Briefcase, BarChart2, Flag, Users,
+  DollarSign,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
@@ -11,6 +11,7 @@ import toast from 'react-hot-toast';
 const ICON_MAP = {
   LayoutDashboard, CalendarDays, Heart, MessageSquare,
   Star, User, Settings, Wrench, Briefcase, BarChart2, Flag, Users,
+  DollarSign,
 };
 
 const Sidebar = ({ navItems, isOpen, onClose }) => {

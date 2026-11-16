@@ -6,6 +6,8 @@ build/
 logs/
 uploads/*
 !uploads/.gitkeep
+server/uploads/*
+!server/uploads/.gitkeep
 .DS_Store
 Thumbs.db
 *.local

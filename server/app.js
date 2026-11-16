@@ -14,6 +14,10 @@ const userRoutes = require('./src/routes/userRoutes');
 const providerRoutes = require('./src/routes/providerRoutes');
 const bookingRoutes = require('./src/routes/bookingRoutes');
 const adminRoutes = require('./src/routes/adminRoutes');
+const messageRoutes = require('./src/routes/messageRoutes');
+const serviceRoutes = require('./src/routes/serviceRoutes');
+const reviewRoutes = require('./src/routes/reviewRoutes');
+const notificationRoutes = require('./src/routes/notificationRoutes');
 
 // Middleware imports
 const errorHandler = require('./src/middlewares/errorHandler');
@@ -32,6 +36,7 @@ app.use(cors({
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100,
+  skipSuccessfulRequests: true,
   message: { success: false, message: 'Too many requests, please try again later.' },
 });
 app.use('/api/', limiter);
@@ -44,6 +49,7 @@ const authLimiter = rateLimit({
 });
 app.use('/api/auth/login', authLimiter);
 app.use('/api/auth/register', authLimiter);
+app.use('/api/auth/oauth/exchange', authLimiter);
 
 // Body parsers
 app.use(express.json({ limit: '10mb' }));
@@ -59,7 +65,7 @@ if (process.env.NODE_ENV === 'development') {
 app.use(passport.initialize());
 
 // Static files (uploads)
-app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // API Routes
 app.use('/api/auth', authRoutes);
@@ -67,6 +73,10 @@ app.use('/api/users', userRoutes);
 app.use('/api/providers', providerRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/messages', messageRoutes);
+app.use('/api/services', serviceRoutes);
+app.use('/api/reviews', reviewRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

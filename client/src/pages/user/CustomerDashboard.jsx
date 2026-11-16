@@ -10,32 +10,9 @@ import {
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import StatCard from '../../components/ui/StatCard';
 import BookingCard from '../../components/ui/BookingCard';
-import { userService } from '../../services';
+import { providerService, userService } from '../../services';
 import { useAuth } from '../../context/AuthContext';
 import { CUSTOMER_NAV } from '../../utils/constants';
-
-/* ── Mock fallback data ────────────────────────────────────────────── */
-const MOCK_BOOKINGS = [
-  { _id: '1', serviceType: 'Laptop Repair',  providerId: { businessName: 'ABC Computers' },    status: 'in_progress', scheduledDate: '2026-08-12', createdAt: new Date() },
-  { _id: '2', serviceType: 'AC Service',     providerId: { businessName: 'CoolHome Services' }, status: 'scheduled',   scheduledDate: '2026-08-14', createdAt: new Date() },
-  { _id: '3', serviceType: 'Bike Servicing', providerId: { businessName: 'AutoCare' },          status: 'completed',   scheduledDate: '2026-08-02', createdAt: new Date() },
-];
-
-const MOCK_PROVIDERS = [
-  { _id: 'p1', businessName: 'Mobile Screen Repair', averageRating: 4.6, category: 'Tech Services',  priceFrom: 400, emoji: '📱' },
-  { _id: 'p2', businessName: 'Home Cleaning',        averageRating: 4.5, category: 'Home Services',  priceFrom: 500, emoji: '🏠' },
-  { _id: 'p3', businessName: 'Data Recovery',        averageRating: 4.8, category: 'Tech Services',  priceFrom: 300, emoji: '💾' },
-];
-
-const MOCK_ACTIVITY = [
-  { date: 'Aug 1',  bookings: 1 },
-  { date: 'Aug 5',  bookings: 2 },
-  { date: 'Aug 10', bookings: 1 },
-  { date: 'Aug 15', bookings: 3 },
-  { date: 'Aug 20', bookings: 2 },
-  { date: 'Aug 25', bookings: 4 },
-  { date: 'Aug 31', bookings: 2 },
-];
 
 /* ── Skeleton loader ───────────────────────────────────────────────── */
 const Skeleton = ({ className = '' }) => (
@@ -72,6 +49,9 @@ const CustomerDashboard = () => {
   const [stats, setStats]       = useState(null);
   const [bookings, setBookings] = useState([]);
   const [saved, setSaved]       = useState([]);
+  const [recommendations, setRecommendations] = useState([]);
+  const [activity, setActivity] = useState([]);
+  const [loadError, setLoadError] = useState('');
 
   useEffect(() => {
     const fetchDashboard = async () => {
@@ -80,11 +60,11 @@ const CustomerDashboard = () => {
         setStats(res.data.stats);
         setBookings(res.data.recentBookings || []);
         setSaved(res.data.savedProviders || []);
-      } catch {
-        // Use mock data on API failure (development / no backend yet)
-        setStats({ activeBookings: 2, completedServices: 12, savedProviders: 5 });
-        setBookings(MOCK_BOOKINGS);
-        setSaved([]);
+        setActivity(res.data.bookingActivity || []);
+        const providerResult = await providerService.getProviders({ limit: 3, sort: 'rating' });
+        setRecommendations(providerResult.data.providers || []);
+      } catch (error) {
+        setLoadError(error.response?.data?.message || 'Could not load your dashboard.');
       } finally {
         setLoading(false);
       }
@@ -121,12 +101,12 @@ const CustomerDashboard = () => {
       iconBg: 'bg-yellow-100',
       iconColor: 'text-yellow-500',
       label: 'Average Rating',
-      value: '4.7',
+      value: stats?.averageRating?.toFixed(1) ?? '—',
     },
   ];
 
   return (
-    <DashboardLayout navItems={CUSTOMER_NAV} notifCount={3}>
+    <DashboardLayout navItems={CUSTOMER_NAV}>
       <div className="max-w-6xl mx-auto space-y-6">
 
         {/* ── Page header ── */}
@@ -203,9 +183,7 @@ const CustomerDashboard = () => {
             <div className="p-3 space-y-2">
               {loading ? (
                 Array(3).fill(0).map((_, i) => <Skeleton key={i} className="h-16" />)
-              ) : (
-                MOCK_PROVIDERS.map((p) => <RecommendedCard key={p._id} provider={p} />)
-              )}
+              ) : recommendations.length ? recommendations.map((p) => <RecommendedCard key={p._id} provider={p} />) : <p className="p-4 text-sm text-gray-500">No approved providers to recommend yet.</p>}
             </div>
           </div>
         </div>
@@ -222,8 +200,8 @@ const CustomerDashboard = () => {
               Bookings
             </div>
           </div>
-          <ResponsiveContainer width="100%" height={180}>
-            <BarChart data={MOCK_ACTIVITY} barSize={28}>
+          {activity.length ? <ResponsiveContainer width="100%" height={180}>
+            <BarChart data={activity} barSize={28}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
               <XAxis
                 dataKey="date"
@@ -243,8 +221,10 @@ const CustomerDashboard = () => {
               />
               <Bar dataKey="bookings" fill="#3b82f6" radius={[6, 6, 0, 0]} />
             </BarChart>
-          </ResponsiveContainer>
+          </ResponsiveContainer> : <p className="py-12 text-center text-sm text-gray-500">No booking activity in the last 30 days.</p>}
         </div>
+
+        {loadError && <p role="alert" className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">{loadError}</p>}
 
         {/* ── Saved Providers ── */}
         {saved.length > 0 && (

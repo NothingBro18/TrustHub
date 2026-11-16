@@ -1,8 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import {
-  Search, Filter, Star, Shield, MapPin, CheckCircle,
-  SlidersHorizontal, X, ArrowUpDown, ChevronDown, Check
+  Search, Filter, Star, MapPin, CheckCircle,
+  SlidersHorizontal, X
 } from 'lucide-react';
 import Navbar from '../../components/layout/Navbar';
 import Footer from '../../components/layout/Footer';
@@ -10,114 +10,12 @@ import { providerService } from '../../services';
 
 // Standard service categories with sub-categories
 const FILTER_CATEGORIES = [
-  'Laptop Repair',
-  'Mobile Repair',
-  'Computer Services',
-  'Software Support',
-  'AC Repair & Service',
-  'Home Cleaning',
-  'Electrical & Plumbing',
-  'Vehicle Servicing',
-];
-
-// Rich fallback provider records matching mockup 2
-const DEFAULT_PROVIDERS = [
-  {
-    _id: '66d01234abc0000000000001',
-    businessName: 'ABC Computers',
-    category: 'Laptop Repair',
-    description: 'Expert laptop and desktop servicing, chip-level motherboard repair, SSD upgrade and screen replacements.',
-    location: { city: 'Belagavi', address: 'College Road, Belagavi', distanceKm: 2 },
-    averageRating: 4.7,
-    totalReviews: 128,
-    trustScore: 90,
-    priceFrom: 300,
-    isVerified: true,
-    availableToday: true,
-    tags: ['Laptop Repair', 'Software', 'Hardware'],
-    image: 'https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=500&auto=format&fit=crop&q=80',
-    experience: '8+ Years',
-  },
-  {
-    _id: '66d01234abc0000000000002',
-    businessName: 'TechFix Solutions',
-    category: 'Laptop Repair',
-    description: 'Specialized in urgent data recovery, broken hinges, liquid damage revival, and clean OS installations.',
-    location: { city: 'Belagavi', address: 'Khade Bazar, Belagavi', distanceKm: 3 },
-    averageRating: 4.5,
-    totalReviews: 86,
-    trustScore: 86,
-    priceFrom: 400,
-    isVerified: true,
-    availableToday: true,
-    tags: ['Laptop Repair', 'Data Recovery', 'OS Installation'],
-    image: 'https://images.unsplash.com/photo-1597733336794-12d05021d510?w=500&auto=format&fit=crop&q=80',
-    experience: '5+ Years',
-  },
-  {
-    _id: '66d01234abc0000000000003',
-    businessName: 'Laptop Care Center',
-    category: 'Laptop Repair',
-    description: 'Original spare parts, certified technicians, rapid turnaround time, and warranty on all screen repairs.',
-    location: { city: 'Belagavi', address: 'Tilakwadi, Belagavi', distanceKm: 3 },
-    averageRating: 4.3,
-    totalReviews: 64,
-    trustScore: 86,
-    priceFrom: 350,
-    isVerified: true,
-    availableToday: false,
-    tags: ['Laptop Repair', 'Screen Replacement', 'AMC'],
-    image: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=500&auto=format&fit=crop&q=80',
-    experience: '6+ Years',
-  },
-  {
-    _id: '66d01234abc0000000000004',
-    businessName: 'QuickFix Mobile & Laptop',
-    category: 'Mobile Repair',
-    description: 'Same day screen repair, battery health replacement, and water damage treatment for all top brands.',
-    location: { city: 'Belagavi', address: 'Camp Area, Belagavi', distanceKm: 1.5 },
-    averageRating: 4.8,
-    totalReviews: 142,
-    trustScore: 94,
-    priceFrom: 250,
-    isVerified: true,
-    availableToday: true,
-    tags: ['Mobile Repair', 'Screen Replacement', 'Battery'],
-    image: 'https://images.unsplash.com/photo-1512499617640-c74ae3a79d37?w=500&auto=format&fit=crop&q=80',
-    experience: '7+ Years',
-  },
-  {
-    _id: '66d01234abc0000000000005',
-    businessName: 'CoolHome HVAC Services',
-    category: 'AC Repair & Service',
-    description: 'Complete split & window AC diagnostics, deep foam jet cleaning, gas filling and copper pipe repair.',
-    location: { city: 'Belagavi', address: 'Rani Chennamma Circle, Belagavi', distanceKm: 2.5 },
-    averageRating: 4.9,
-    totalReviews: 210,
-    trustScore: 96,
-    priceFrom: 499,
-    isVerified: true,
-    availableToday: true,
-    tags: ['AC Repair & Service', 'Gas Refill', 'Maintenance'],
-    image: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=500&auto=format&fit=crop&q=80',
-    experience: '10+ Years',
-  },
-  {
-    _id: '66d01234abc0000000000006',
-    businessName: 'Elite Home Sparkle',
-    category: 'Home Cleaning',
-    description: 'Eco-friendly deep sanitization, bathroom scrubbing, kitchen de-greasing and full apartment handover cleaning.',
-    location: { city: 'Belagavi', address: 'Udyambag, Belagavi', distanceKm: 4 },
-    averageRating: 4.6,
-    totalReviews: 95,
-    trustScore: 89,
-    priceFrom: 599,
-    isVerified: true,
-    availableToday: false,
-    tags: ['Home Cleaning', 'Sanitization', 'Deep Clean'],
-    image: 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=500&auto=format&fit=crop&q=80',
-    experience: '4+ Years',
-  },
+  'Home Services',
+  'Tech Services',
+  'Vehicle Services',
+  'Student Services',
+  'Creative Services',
+  'Other',
 ];
 
 const SearchPage = () => {
@@ -127,15 +25,15 @@ const SearchPage = () => {
 
   const [keyword, setKeyword] = useState(initialSearch);
   const [selectedCategories, setSelectedCategories] = useState(
-    initialCategory ? [initialCategory] : ['Laptop Repair']
+    initialCategory ? [initialCategory] : []
   );
   const [maxPrice, setMaxPrice] = useState(2000);
   const [minRating, setMinRating] = useState('any'); // 'any', '3', '4'
-  const [availableTodayOnly, setAvailableTodayOnly] = useState(false);
-  const [sortBy, setSortBy] = useState('best_match'); // 'best_match', 'trust_score', 'rating', 'price_asc'
+  const [sortBy, setSortBy] = useState('best_match');
   
-  const [providers, setProviders] = useState(DEFAULT_PROVIDERS);
+  const [providers, setProviders] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [loadError, setLoadError] = useState('');
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
 
   // Sync with URL params
@@ -143,34 +41,38 @@ const SearchPage = () => {
     if (initialSearch) {
       setKeyword(initialSearch);
     }
-    if (initialCategory && !selectedCategories.includes(initialCategory)) {
-      setSelectedCategories([initialCategory]);
+    if (initialCategory) {
+      setSelectedCategories((categories) => (
+        categories.includes(initialCategory) ? categories : [initialCategory]
+      ));
     }
   }, [initialSearch, initialCategory]);
 
-  // Attempt backend API fetch with fallback to client data
+  // Search administrator-approved providers using live platform data.
   useEffect(() => {
     const fetchProviders = async () => {
       setLoading(true);
+      setLoadError('');
       try {
         const res = await providerService.getProviders({
           search: keyword || undefined,
-          sort: sortBy === 'rating' ? 'rating' : 'trustScore',
+          category: selectedCategories.length === 1 ? selectedCategories[0] : undefined,
+          maxPrice: maxPrice < 2000 ? maxPrice : undefined,
+          rating: minRating,
+          sort: sortBy === 'completed' ? 'completed' : sortBy === 'price_asc' ? 'price_asc' : 'rating',
+          limit: 50,
         });
-        if (res.data?.providers && res.data.providers.length > 0) {
-          setProviders(res.data.providers);
-        } else {
-          setProviders(DEFAULT_PROVIDERS);
-        }
-      } catch {
-        setProviders(DEFAULT_PROVIDERS);
+        setProviders(res.data?.providers || []);
+      } catch (error) {
+        setProviders([]);
+        setLoadError(error.response?.data?.message || 'Could not load providers. Please try again.');
       } finally {
         setLoading(false);
       }
     };
 
     fetchProviders();
-  }, [keyword, sortBy]);
+  }, [keyword, sortBy, selectedCategories, maxPrice, minRating]);
 
   // Handle Search submit
   const handleSearchSubmit = (e) => {
@@ -198,7 +100,6 @@ const SearchPage = () => {
     setSelectedCategories([]);
     setMaxPrice(2000);
     setMinRating('any');
-    setAvailableTodayOnly(false);
   };
 
   // Filter & Sort Logic
@@ -222,14 +123,21 @@ const SearchPage = () => {
       result = result.filter((p) =>
         selectedCategories.some(
           (sc) =>
-            p.category.toLowerCase() === sc.toLowerCase() ||
-            (p.tags && p.tags.some((t) => t.toLowerCase() === sc.toLowerCase()))
+            p.category?.toLowerCase() === sc.toLowerCase() ||
+            p.category?.toLowerCase().includes(sc.toLowerCase()) ||
+            (p.tags && p.tags.some((t) => t.toLowerCase().includes(sc.toLowerCase())))
         )
       );
     }
 
     // Max Price Filter
-    result = result.filter((p) => (p.priceFrom || 0) <= maxPrice);
+    if (maxPrice < 5000) {
+      result = result.filter((p) => {
+        if (!p.priceFrom && !p.startingPrice) return true;
+        const price = p.priceFrom || p.startingPrice || 0;
+        return price <= maxPrice;
+      });
+    }
 
     // Rating Filter
     if (minRating === '4') {
@@ -238,22 +146,15 @@ const SearchPage = () => {
       result = result.filter((p) => p.averageRating >= 3.0);
     }
 
-    // Availability Filter
-    if (availableTodayOnly) {
-      result = result.filter((p) => p.availableToday);
-    }
-
     // Sorting
-    if (sortBy === 'trust_score') {
-      result.sort((a, b) => b.trustScore - a.trustScore);
-    } else if (sortBy === 'rating') {
+    if (sortBy === 'rating') {
       result.sort((a, b) => b.averageRating - a.averageRating);
     } else if (sortBy === 'price_asc') {
-      result.sort((a, b) => (a.priceFrom || 0) - (b.priceFrom || 0));
+      result.sort((a, b) => (a.priceFrom ?? Infinity) - (b.priceFrom ?? Infinity));
     }
 
     return result;
-  }, [providers, keyword, selectedCategories, maxPrice, minRating, availableTodayOnly, sortBy]);
+  }, [providers, keyword, selectedCategories, maxPrice, minRating, sortBy]);
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 font-sans">
@@ -335,7 +236,7 @@ const SearchPage = () => {
                 className="bg-transparent font-semibold text-slate-800 text-xs sm:text-sm outline-none cursor-pointer"
               >
                 <option value="best_match">Best Match</option>
-                <option value="trust_score">Highest Trust Score</option>
+                <option value="completed">Most Completed Services</option>
                 <option value="rating">Top Rated</option>
                 <option value="price_asc">Price: Low to High</option>
               </select>
@@ -441,22 +342,6 @@ const SearchPage = () => {
               </div>
             </div>
 
-            {/* Availability */}
-            <div className="space-y-3 pt-3 border-t border-slate-100">
-              <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
-                Availability
-              </h3>
-              <label className="flex items-center gap-2.5 text-xs text-slate-700 font-medium cursor-pointer hover:text-slate-900 select-none">
-                <input
-                  type="checkbox"
-                  checked={availableTodayOnly}
-                  onChange={(e) => setAvailableTodayOnly(e.target.checked)}
-                  className="w-4 h-4 rounded text-blue-600 border-slate-300 focus:ring-blue-500 rounded-xs"
-                />
-                <span>Available Today</span>
-              </label>
-            </div>
-
           </aside>
 
           {/* ── RIGHT PROVIDER CARDS COLUMN (9 Cols) ── */}
@@ -468,6 +353,8 @@ const SearchPage = () => {
                   <div key={i} className="animate-pulse bg-white p-5 rounded-2xl border border-slate-200 h-44" />
                 ))}
               </div>
+            ) : loadError ? (
+              <div role="alert" className="rounded-2xl border border-red-200 bg-red-50 p-6 text-sm text-red-700">{loadError}</div>
             ) : filteredProviders.length > 0 ? (
               filteredProviders.map((provider) => (
                 <div
@@ -477,18 +364,8 @@ const SearchPage = () => {
                   {/* Left: Thumbnail & Details */}
                   <div className="flex items-start gap-4 flex-1">
                     
-                    {/* Thumbnail Image */}
-                    <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden bg-slate-100 flex-shrink-0 border border-slate-200/70 shadow-2xs relative">
-                      <img
-                        src={provider.image || 'https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=500&auto=format&fit=crop&q=80'}
-                        alt={provider.businessName}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
-                      {provider.availableToday && (
-                        <div className="absolute top-1 left-1 bg-emerald-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full shadow-xs">
-                          Today
-                        </div>
-                      )}
+                    <div className="flex h-20 w-20 flex-shrink-0 items-center justify-center rounded-2xl border border-slate-200/70 bg-blue-50 text-2xl font-bold text-blue-600 sm:h-24 sm:w-24">
+                      {provider.businessName?.charAt(0)?.toUpperCase() || 'P'}
                     </div>
 
                     {/* Meta info */}
@@ -505,7 +382,7 @@ const SearchPage = () => {
                         
                         <div className="flex items-center gap-1 text-xs font-semibold text-slate-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200/70">
                           <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
-                          <span>{provider.averageRating?.toFixed(1) || '4.5'}</span>
+                          <span>{Number(provider.averageRating || 0).toFixed(1)}</span>
                           <span className="text-slate-400 font-normal">
                             ({provider.totalReviews || 0} reviews)
                           </span>
@@ -515,20 +392,16 @@ const SearchPage = () => {
                       {/* Distance / Location */}
                       <p className="text-xs text-slate-500 flex items-center gap-1">
                         <MapPin className="w-3.5 h-3.5 text-slate-400" />
-                        <span>Belagavi · {provider.location?.distanceKm || 2} km</span>
+                        <span>{[provider.location?.city, provider.location?.state].filter(Boolean).join(', ') || 'Location not provided'}</span>
                       </p>
 
-                      {/* Badges: Verified & Trust Score */}
+                      {/* Provider verification */}
                       <div className="flex flex-wrap items-center gap-2 pt-0.5">
                         <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600">
                           <CheckCircle className="w-3.5 h-3.5 text-emerald-500" />
-                          Verified
+                          Approved
                         </span>
 
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-xs font-bold">
-                          <Shield className="w-3 h-3 text-blue-600" />
-                          {provider.trustScore || 85} Trust Score
-                        </span>
                       </div>
 
                       {/* Tags */}
@@ -551,7 +424,7 @@ const SearchPage = () => {
                     <div className="text-left sm:text-right">
                       <span className="text-[10px] text-slate-400 uppercase font-semibold block">From</span>
                       <p className="text-xl font-extrabold text-slate-900">
-                        ₹ {provider.priceFrom || 300}
+                        {provider.priceFrom != null ? `₹ ${provider.priceFrom}` : 'Price on request'}
                       </p>
                     </div>
 
@@ -575,7 +448,7 @@ const SearchPage = () => {
                   No service providers found
                 </h3>
                 <p className="text-sm text-slate-500 max-w-md mx-auto">
-                  We couldn't find any verified providers matching your exact criteria. Try broadening your filters or clearing search terms.
+                  We couldn't find any approved providers matching your exact criteria. Try broadening your filters or clearing search terms.
                 </p>
                 <div>
                   <button
@@ -664,19 +537,6 @@ const SearchPage = () => {
                     <span>{val === 'any' ? 'Any Rating' : `★ ${val} & above`}</span>
                   </label>
                 ))}
-              </div>
-
-              {/* Availability */}
-              <div className="pt-2 border-t border-slate-100">
-                <label className="flex items-center gap-2 text-xs text-slate-700">
-                  <input
-                    type="checkbox"
-                    checked={availableTodayOnly}
-                    onChange={(e) => setAvailableTodayOnly(e.target.checked)}
-                    className="rounded text-blue-600"
-                  />
-                  <span>Available Today</span>
-                </label>
               </div>
 
             </div>

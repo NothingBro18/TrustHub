@@ -12,37 +12,6 @@ import { ADMIN_NAV } from '../../utils/constants';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
 
-/* ── Fallback mock data ── */
-const MOCK_FLAGGED = [
-  {
-    _id: 'f1',
-    type: 'unusual_review',
-    description: 'Rapid 5-star review burst submitted from identical IP within 3 minutes.',
-    userId: { name: 'FastFix Spammer', email: 'spammer99@fakemail.com', role: 'customer' },
-    severity: 'high',
-    resolved: false,
-    createdAt: new Date().toISOString(),
-  },
-  {
-    _id: 'f2',
-    type: 'suspicious_account',
-    description: 'Account registered with disposable email domain and high frequency booking requests.',
-    userId: { name: 'FastFix Spammer', email: 'spammer99@fakemail.com', role: 'customer' },
-    severity: 'high',
-    resolved: false,
-    createdAt: new Date().toISOString(),
-  },
-  {
-    _id: 'f3',
-    type: 'multiple_reviews',
-    description: 'Duplicate review text detected across 2 separate provider listings.',
-    userId: { name: 'Rahul Patil', email: 'customer@trusthub.com', role: 'customer' },
-    severity: 'medium',
-    resolved: false,
-    createdAt: new Date().toISOString(),
-  },
-];
-
 const SEVERITY_CONFIG = {
   high: {
     bg: 'bg-red-50 text-red-700 border-red-200',
@@ -72,6 +41,7 @@ const TYPE_CONFIG = {
 const AdminFlagged = () => {
   const [activities, setActivities] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
   const [totalCount, setTotalCount] = useState(0);
 
   // Filters
@@ -97,6 +67,7 @@ const AdminFlagged = () => {
   // Fetch activities
   const fetchActivities = useCallback(async () => {
     setLoading(true);
+    setLoadError('');
     try {
       const params = { page, limit };
       if (statusFilter === 'unresolved') params.resolved = 'false';
@@ -110,10 +81,11 @@ const AdminFlagged = () => {
         setActivities(res.data.activities);
         setTotalCount(res.data.total);
       }
-    } catch {
-      toast.error('Failed to load live flagged records. Showing cached items.');
-      setActivities(MOCK_FLAGGED);
-      setTotalCount(MOCK_FLAGGED.length);
+    } catch (error) {
+      setLoadError(error.response?.data?.message || 'Failed to load flagged activities.');
+      setActivities([]);
+      setTotalCount(0);
+      toast.error(error.response?.data?.message || 'Failed to load flagged activities');
     } finally {
       setLoading(false);
     }
@@ -202,6 +174,7 @@ const AdminFlagged = () => {
   return (
     <DashboardLayout navItems={ADMIN_NAV}>
       <div className="max-w-7xl mx-auto space-y-6">
+        {loadError && <p role="alert" className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">{loadError}</p>}
 
         {/* ── Page Header ── */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">

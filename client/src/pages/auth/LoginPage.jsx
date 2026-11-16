@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -20,6 +20,15 @@ const LoginPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const from = location.state?.from?.pathname || '/dashboard';
+  const oauthError = new URLSearchParams(location.search).get('error');
+
+  useEffect(() => {
+    if (oauthError) {
+      toast.error(oauthError.endsWith('_not_configured')
+        ? 'This sign-in provider is not configured.'
+        : 'Could not complete sign-in. Please try again.');
+    }
+  }, [oauthError]);
 
   const {
     register,
@@ -70,25 +79,23 @@ const LoginPage = () => {
           <div className="space-y-6">
             <div className="space-y-3">
               <h1 className="text-4xl font-bold text-white leading-tight">
-                Trusted People<br />
-                <span className="text-blue-200">Build Better</span><br />
-                Communities
+                Find Local<br />
+                <span className="text-blue-200">Services and</span><br />
+                Manage Bookings
               </h1>
               <p className="text-blue-100 text-lg leading-relaxed">
-                Join TrustHub today and experience safe, reliable and verified services.
+                Discover active listings from providers approved by TrustHub administrators. Coordinate appointments and payment arrangements directly.
               </p>
             </div>
 
-            {/* Trust badges */}
             <div className="flex flex-col gap-3">
               {[
-                { icon: '✅', text: 'Verified Service Providers' },
-                { icon: '🔒', text: 'Secure & Safe Platform' },
-                { icon: '⭐', text: '4.7/5 Average Rating' },
+                'Provider listings require administrator approval.',
+                'Customers can request and manage appointments.',
+                'TrustHub does not process payments.',
               ].map((item) => (
-                <div key={item.text} className="flex items-center gap-3 bg-white/10 backdrop-blur rounded-xl px-4 py-3 border border-white/20">
-                  <span className="text-xl">{item.icon}</span>
-                  <span className="text-white font-medium">{item.text}</span>
+                <div key={item} className="flex items-center gap-3 bg-white/10 backdrop-blur rounded-xl px-4 py-3 border border-white/20">
+                  <span className="text-white font-medium">{item}</span>
                 </div>
               ))}
             </div>
@@ -96,7 +103,7 @@ const LoginPage = () => {
 
           {/* Bottom tagline */}
           <div className="text-blue-200 text-sm font-medium">
-            Local People · Real Support
+            Local service discovery · Booking management
           </div>
         </div>
       </div>

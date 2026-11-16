@@ -51,8 +51,22 @@ const userSchema = new mongoose.Schema(
       default: '',
     },
     savedProviders: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Provider' }],
+    lastLoginAt: {
+      type: Date,
+      default: null,
+    },
+    lastActiveAt: {
+      type: Date,
+      default: null,
+    },
+    isOnline: {
+      type: Boolean,
+      default: false,
+    },
     resetPasswordToken: String,
     resetPasswordExpire: Date,
+    oauthLoginCodeHash: { type: String, select: false },
+    oauthLoginCodeExpire: { type: Date, select: false },
   },
   { timestamps: true }
 );

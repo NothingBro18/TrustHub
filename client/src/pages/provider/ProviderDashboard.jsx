@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  Wrench, CalendarCheck, Star, Shield, ArrowRight,
+  CalendarCheck, Star, ArrowRight,
   TrendingUp, IndianRupee, CheckCircle2, Clock,
 } from 'lucide-react';
 import {
@@ -15,63 +15,10 @@ import { useAuth } from '../../context/AuthContext';
 import { PROVIDER_NAV } from '../../utils/constants';
 import { format } from 'date-fns';
 
-/* ── Mock data ─────────────────────────────────────────────────────── */
-const MOCK_STATS = {
-  servicesCompleted: 127,
-  activeBookings: 4,
-  averageRating: 4.7,
-  trustScore: 92,
-  totalEarnings: 24500,
-};
-
-const MOCK_BOOKINGS = [
-  { _id: 'b1', serviceId: { title: 'Laptop Screen Replacement' }, customerId: { name: 'Rahul Patil' },    status: 'pending',     scheduledDate: '2026-08-12' },
-  { _id: 'b2', serviceId: { title: 'Software Installation' },     customerId: { name: 'Sneha Kulkarni' }, status: 'accepted',    scheduledDate: '2026-08-11' },
-  { _id: 'b3', serviceId: { title: 'Data Recovery' },             customerId: { name: 'Vikram Joshi' },   status: 'completed',   scheduledDate: '2026-08-09' },
-  { _id: 'b4', serviceId: { title: 'Virus Removal' },             customerId: { name: 'Anjali Mehta' },   status: 'in_progress', scheduledDate: '2026-08-10' },
-];
-
-const MOCK_EARNINGS = [
-  { date: 'Aug 1',  earnings: 2000 },
-  { date: 'Aug 5',  earnings: 3500 },
-  { date: 'Aug 10', earnings: 2800 },
-  { date: 'Aug 15', earnings: 4200 },
-  { date: 'Aug 20', earnings: 3100 },
-  { date: 'Aug 25', earnings: 5400 },
-  { date: 'Aug 31', earnings: 3500 },
-];
-
 /* ── Skeleton ────────────────────────────────────────────────────────*/
 const Skeleton = ({ className = '' }) => (
   <div className={`animate-pulse bg-gray-100 rounded-xl ${className}`} />
 );
-
-/* ── Trust Score Ring ───────────────────────────────────────────────*/
-const TrustScoreRing = ({ score }) => {
-  const pct  = (score / 100) * 100;
-  const dash = 2 * Math.PI * 38;
-  const offset = dash * (1 - score / 100);
-
-  return (
-    <div className="relative w-24 h-24">
-      <svg className="w-24 h-24 -rotate-90" viewBox="0 0 100 100">
-        <circle cx="50" cy="50" r="38" fill="none" stroke="#e5e7eb" strokeWidth="10" />
-        <circle
-          cx="50" cy="50" r="38" fill="none"
-          stroke="#2563eb" strokeWidth="10"
-          strokeDasharray={`${dash}`}
-          strokeDashoffset={offset}
-          strokeLinecap="round"
-          className="transition-all duration-700"
-        />
-      </svg>
-      <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-2xl font-bold text-gray-900">{score}</span>
-        <span className="text-[10px] text-gray-400">/100</span>
-      </div>
-    </div>
-  );
-};
 
 /* ── Main Component ─────────────────────────────────────────────────*/
 const ProviderDashboard = () => {
@@ -79,22 +26,33 @@ const ProviderDashboard = () => {
   const [loading, setLoading]   = useState(true);
   const [stats, setStats]       = useState(null);
   const [bookings, setBookings] = useState([]);
+  const [earningsHistory, setEarningsHistory] = useState([]);
+  const [providerProfile, setProviderProfile] = useState(null);
+  const [loadError, setLoadError] = useState('');
+
+  const fetchDashboard = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true);
+    setLoadError('');
+    try {
+      const res = await providerService.getDashboard();
+      setStats(res.data.stats);
+      setBookings(res.data.recentBookings || []);
+      setEarningsHistory(res.data.earningsHistory || []);
+      setProviderProfile(res.data.provider);
+    } catch (error) {
+      setLoadError(error.response?.data?.message || 'Could not load your provider dashboard.');
+    } finally {
+      if (!silent) setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    const fetch = async () => {
-      try {
-        const res = await providerService.getDashboard();
-        setStats(res.data.stats);
-        setBookings(res.data.recentBookings || []);
-      } catch {
-        setStats(MOCK_STATS);
-        setBookings(MOCK_BOOKINGS);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetch();
-  }, []);
+    fetchDashboard();
+    const interval = setInterval(() => {
+      if (document.visibilityState === 'visible') fetchDashboard(true);
+    }, 15000);
+    return () => clearInterval(interval);
+  }, [fetchDashboard]);
 
   const businessName = user?.name || 'Provider';
 
@@ -124,13 +82,13 @@ const ProviderDashboard = () => {
       icon: IndianRupee,
       iconBg: 'bg-emerald-100',
       iconColor: 'text-emerald-600',
-      label: 'Total Earnings',
+      label: 'Reported Collections',
       value: `₹${(stats?.totalEarnings || 0).toLocaleString('en-IN')}`,
     },
   ];
 
   return (
-    <DashboardLayout navItems={PROVIDER_NAV} notifCount={2}>
+    <DashboardLayout navItems={PROVIDER_NAV}>
       <div className="max-w-6xl mx-auto space-y-6">
 
         {/* ── Header ── */}
@@ -143,7 +101,7 @@ const ProviderDashboard = () => {
           </div>
           <div className="hidden sm:flex items-center gap-2 text-sm text-gray-500 bg-white px-3 py-2 rounded-xl border border-gray-100 shadow-sm">
             <TrendingUp className="w-4 h-4 text-green-500" />
-            This Month
+            Provider workspace
           </div>
         </div>
 
@@ -203,41 +161,30 @@ const ProviderDashboard = () => {
             </div>
           </div>
 
-          {/* Trust Score card — 1/3 */}
+          {/* Profile status — 1/3 */}
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex flex-col gap-5">
-            {/* Trust Score */}
             <div>
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-base font-bold text-gray-900">Trust Score</h2>
-                <span className="text-xs bg-green-100 text-green-700 font-semibold px-2 py-1 rounded-full">Verified</span>
+                <h2 className="text-base font-bold text-gray-900">Profile status</h2>
+                <span className={`text-xs font-semibold px-2 py-1 rounded-full ${providerProfile?.isVerified ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>{providerProfile?.isVerified ? 'Verified' : 'Verification pending'}</span>
               </div>
-              <div className="flex flex-col items-center gap-3">
-                {loading
-                  ? <Skeleton className="w-24 h-24 rounded-full" />
-                  : <TrustScoreRing score={stats?.trustScore ?? 92} />
-                }
-                <p className="text-xs text-gray-500 text-center">Your trust score is based on reviews, completed services & verification</p>
-              </div>
-            </div>
-
-            {/* Verification checklist */}
-            <div className="space-y-2 border-t border-gray-50 pt-4">
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Verification</p>
-              {[
-                { label: 'Identity Verified',         done: true },
-                { label: 'Contact Verified',          done: true },
-                { label: '127 Services Completed',    done: true },
-                { label: 'Positive Review History',   done: true },
-              ].map((item) => (
-                <div key={item.label} className="flex items-center gap-2">
-                  <div className={`w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0 ${item.done ? 'bg-green-500' : 'bg-gray-200'}`}>
-                    <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 10 10" fill="none">
-                      <path d="M2 5l2.5 2.5L8 3" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  </div>
-                  <span className="text-xs text-gray-600">{item.label}</span>
+              <p className="text-xs text-gray-500">
+                {providerProfile?.isVerified
+                  ? 'Your active services can appear in customer search and accept new booking requests.'
+                  : 'This status refreshes automatically. Your active services become bookable after approval.'}
+              </p>
+              <div className="space-y-2 border-t border-gray-50 pt-4 text-sm">
+                <div className="flex justify-between gap-2">
+                  <span className="text-gray-500">Completed bookings</span>
+                  <span className="font-semibold text-gray-900">{stats?.servicesCompleted ?? '—'}</span>
                 </div>
-              ))}
+                <div className="flex justify-between gap-2">
+                  <span className="text-gray-500">Customer rating</span>
+                  <span className="font-semibold text-gray-900">
+                    {stats?.averageRating?.toFixed(1) ?? '—'} ({providerProfile?.totalReviews || 0} reviews)
+                  </span>
+                </div>
+              </div>
             </div>
 
             <Link
@@ -253,11 +200,11 @@ const ProviderDashboard = () => {
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
           <div className="flex items-center justify-between mb-5">
             <div>
-              <h2 className="text-base font-bold text-gray-900">Earnings Overview</h2>
+              <h2 className="text-base font-bold text-gray-900">Provider-Reported Collections</h2>
               <p className="text-xs text-gray-400 mt-0.5">
-                Total this month:{' '}
+                Total recorded earnings:{' '}
                 <span className="text-emerald-600 font-bold text-sm">
-                  ₹{(stats?.totalEarnings || 24500).toLocaleString('en-IN')}
+                  ₹{Number(stats?.totalEarnings || 0).toLocaleString('en-IN')}
                 </span>
               </p>
             </div>
@@ -266,8 +213,8 @@ const ProviderDashboard = () => {
               Earnings (₹)
             </div>
           </div>
-          <ResponsiveContainer width="100%" height={180}>
-            <BarChart data={MOCK_EARNINGS} barSize={28}>
+          {earningsHistory.length ? <ResponsiveContainer width="100%" height={180}>
+            <BarChart data={earningsHistory} barSize={28}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
               <XAxis dataKey="date" tick={{ fontSize: 11, fill: '#9ca3af' }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fontSize: 11, fill: '#9ca3af' }} axisLine={false} tickLine={false} width={40} tickFormatter={(v) => `₹${v/1000}k`} />
@@ -278,9 +225,10 @@ const ProviderDashboard = () => {
               />
               <Bar dataKey="earnings" fill="#10b981" radius={[6, 6, 0, 0]} />
             </BarChart>
-          </ResponsiveContainer>
+          </ResponsiveContainer> : <p className="py-12 text-center text-sm text-gray-500">No completed bookings in the last 30 days.</p>}
         </div>
 
+        {loadError && <p role="alert" className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">{loadError}</p>}
       </div>
     </DashboardLayout>
   );

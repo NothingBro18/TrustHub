@@ -12,10 +12,16 @@ const messageSchema = new mongoose.Schema(
       ref: 'User',
       required: true,
     },
+    bookingId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Booking',
+      default: null,
+    },
     content: {
       type: String,
       required: true,
       trim: true,
+      maxlength: 5000,
     },
     isRead: { type: Boolean, default: false },
   },

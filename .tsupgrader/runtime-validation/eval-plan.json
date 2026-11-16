@@ -1,0 +1,73 @@
+{
+  "generatedAt": "2026-11-16T09:05:56Z",
+  "generatedOnPlatform": "win32",
+  "projectType": "webapp",
+  "setup": [],
+  "assertions": [
+    {
+      "name": "frontend-production-build",
+      "kind": "process",
+      "command": "npm",
+      "args": ["run", "build"],
+      "cwd": "client",
+      "verificationMethod": "exit-code",
+      "expected": "0",
+      "timeoutSeconds": 300
+    },
+    {
+      "name": "client-tests-pass",
+      "kind": "process",
+      "command": "npm",
+      "args": ["test"],
+      "cwd": "client",
+      "verificationMethod": "test-results",
+      "expected": "0",
+      "timeoutSeconds": 180
+    },
+    {
+      "name": "client-lint",
+      "kind": "process",
+      "command": "npm",
+      "args": ["run", "lint"],
+      "cwd": "client",
+      "verificationMethod": "exit-code",
+      "expected": "0",
+      "timeoutSeconds": 180
+    },
+    {
+      "name": "tests-pass",
+      "kind": "process",
+      "command": "npm",
+      "args": ["test"],
+      "cwd": "server",
+      "verificationMethod": "test-results",
+      "expected": "0",
+      "timeoutSeconds": 180
+    },
+    {
+      "name": "api-health-endpoint",
+      "kind": "http-probe",
+      "startCommand": "npm",
+      "startArgs": ["start"],
+      "cwd": "server",
+      "env": {
+        "PORT": "5001"
+      },
+      "url": "http://127.0.0.1:5001/api/health",
+      "verificationMethod": "http-status",
+      "expected": "200",
+      "timeoutSeconds": 90
+    },
+    {
+      "name": "frontend-homepage-serves",
+      "kind": "http-probe",
+      "startCommand": "npm",
+      "startArgs": ["run", "dev", "--", "--host", "127.0.0.1", "--port", "5175", "--strictPort"],
+      "cwd": "client",
+      "url": "http://127.0.0.1:5175/",
+      "verificationMethod": "http-status",
+      "expected": "200",
+      "timeoutSeconds": 60
+    }
+  ]
+}

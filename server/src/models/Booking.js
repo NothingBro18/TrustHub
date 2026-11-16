@@ -18,10 +18,16 @@ const bookingSchema = new mongoose.Schema(
       required: true,
     },
     serviceType: { type: String, required: true },
-    issueDescription: { type: String, default: '' },
+    issueDescription: { type: String, default: '', maxlength: 2000 },
     images: [{ type: String }],
     scheduledDate: { type: Date, required: true },
     scheduledTime: { type: String, required: true },
+    serviceMode: {
+      type: String,
+      enum: ['doorstep', 'shop_visit'],
+      default: 'doorstep',
+    },
+    serviceAddress: { type: String, default: '' },
     estimatedPrice: {
       min: { type: Number },
       max: { type: Number },
@@ -36,8 +42,8 @@ const bookingSchema = new mongoose.Schema(
       enum: ['unpaid', 'paid', 'refunded'],
       default: 'unpaid',
     },
-    paymentAmount: { type: Number, default: 0 },
-    notes: { type: String, default: '' },
+    paymentAmount: { type: Number, default: 0, min: 0 },
+    notes: { type: String, default: '', maxlength: 2000 },
   },
   { timestamps: true }
 );

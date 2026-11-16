@@ -2,159 +2,60 @@ import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import {
   Shield, CheckCircle, Star, MapPin, Phone, Mail, Clock,
-  Calendar, MessageSquare, ArrowRight, Award, ThumbsUp,
-  Wrench, CheckCircle2, ChevronRight, Share2, Heart,
-  Sparkles, AlertCircle, HelpCircle, Image as ImageIcon
+  MessageSquare, ArrowRight, Share2, Heart,
+  HelpCircle
 } from 'lucide-react';
 import Navbar from '../../components/layout/Navbar';
 import Footer from '../../components/layout/Footer';
+import ChatModal from '../../components/common/ChatModal';
 import { providerService, userService } from '../../services';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
 
-// Default mock provider data matching Mockup 3
-const DEFAULT_PROVIDER_DATA = {
-  _id: '66d01234abc0000000000001',
-  businessName: 'ABC Computers',
-  tagline: 'Laptop & Computer Repair Specialist',
-  category: 'Tech Services',
-  description:
-    'Professional laptop and computer repair services with 5+ years of experience. We provide quality service with genuine parts, chip-level micro-soldering, rapid screen replacements, and complete data security.',
-  location: {
-    address: 'Shop 14, City Center Complex, College Road',
-    city: 'Belagavi',
-    state: 'Karnataka',
-    distanceKm: 2,
-  },
-  phone: '+91 98765 43210',
-  email: 'abccomputers@gmail.com',
-  businessHours: 'Mon - Sat: 9:00 AM - 8:00 PM',
-  statusText: 'Open now · Closes at 8:00 PM',
-  experience: '5+ Years',
-  happyCustomers: 500,
-  averageRating: 4.7,
-  totalReviews: 128,
-  trustScore: 92,
-  isVerified: true,
-  verificationDetails: {
-    identityVerified: true,
-    contactVerified: true,
-    servicesCompleted: 127,
-    positiveReviewHistory: true,
-  },
-  services: [
-    {
-      _id: 's1',
-      title: 'Laptop Screen Replacement',
-      price: 1800,
-      duration: '2 - 3 Hours',
-      description: 'Original IPS & LED screens replacement with 6 months replacement warranty.',
-    },
-    {
-      _id: 's2',
-      title: 'Motherboard Chip-level Diagnostics & Repair',
-      price: 1200,
-      duration: '24 - 48 Hours',
-      description: 'Specialized micro-soldering, power IC replacement, and liquid damage recovery.',
-    },
-    {
-      _id: 's3',
-      title: 'OS Installation & Optimization',
-      price: 400,
-      duration: '1 Hour',
-      description: 'Genuine Windows/Linux installation, antivirus setup, thermal cleanup, and speed tuning.',
-    },
-    {
-      _id: 's4',
-      title: 'SSD & RAM Performance Upgrade',
-      price: 600,
-      duration: '45 Mins',
-      description: 'High-speed NVMe/SATA SSD installation with full data cloning from old hard drive.',
-    },
-  ],
-  gallery: [
-    'https://images.unsplash.com/photo-1597733336794-12d05021d510?w=600&auto=format&fit=crop&q=80',
-    'https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=600&auto=format&fit=crop&q=80',
-    'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=600&auto=format&fit=crop&q=80',
-    'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=600&auto=format&fit=crop&q=80',
-  ],
-  reviews: [
-    {
-      _id: 'r1',
-      author: 'Rohit Kulkarni',
-      avatar: '👨‍💼',
-      rating: 5,
-      date: '2 days ago',
-      service: 'Laptop Screen Replacement',
-      comment:
-        'Replaced my Dell Inspiron broken display within 2 hours! Very transparent pricing and genuine parts used. Highly recommended in Belagavi.',
-    },
-    {
-      _id: 'r2',
-      author: 'Priya Desai',
-      avatar: '👩‍🏫',
-      rating: 5,
-      date: '1 week ago',
-      service: 'SSD & RAM Upgrade',
-      comment:
-        'My old HP laptop feels like brand new after the SSD upgrade. Very courteous staff and clear explanation of all charges.',
-    },
-    {
-      _id: 'r3',
-      author: 'Vikas Patil',
-      avatar: '👨‍💻',
-      rating: 4.5,
-      date: '2 weeks ago',
-      service: 'Motherboard Repair',
-      comment:
-        'Fixed the water damage issue that two other shops refused to touch. Trust score definitely reflects their honesty!',
-    },
-  ],
-  faqs: [
-    {
-      q: 'Do you provide a warranty on repairs and replacements?',
-      a: 'Yes, all screen replacements and internal hardware parts carry a 3 to 6-month warranty. Service repairs carry a 30-day warranty.',
-    },
-    {
-      q: 'Can I get my device picked up from home?',
-      a: 'Yes, we offer doorstep pickup and drop within a 10 km radius in Belagavi for a nominal fee of ₹50.',
-    },
-    {
-      q: 'Is my personal data safe during the repair?',
-      a: 'Absolutely. We strictly adhere to TrustHub privacy protocols. Storage is detached or encrypted prior to hardware repair.',
-    },
-  ],
-};
+const EMPTY_PROVIDER_DATA = { services: [], reviews: [], gallery: [], faqs: [] };
 
 const ProviderProfilePage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user, isAuthenticated } = useAuth();
+  const { isAuthenticated } = useAuth();
 
-  const [provider, setProvider] = useState(DEFAULT_PROVIDER_DATA);
-  const [loading, setLoading] = useState(false);
+  const [provider, setProvider] = useState(EMPTY_PROVIDER_DATA);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
   const [activeTab, setActiveTab] = useState('overview'); // 'overview', 'services', 'reviews', 'gallery', 'faq'
   const [isSaved, setIsSaved] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
 
   // Fetch provider data
   useEffect(() => {
     const fetchProvider = async () => {
-      if (!id || id === 'p1' || id === '66d01234abc0000000000001') {
-        setProvider(DEFAULT_PROVIDER_DATA);
+      if (!id) {
+        setLoadError('Provider not found.');
+        setLoading(false);
         return;
       }
       setLoading(true);
+      setLoadError('');
       try {
         const res = await providerService.getProvider(id);
         if (res.data?.provider) {
           setProvider({
-            ...DEFAULT_PROVIDER_DATA,
+            ...EMPTY_PROVIDER_DATA,
             ...res.data.provider,
-            reviews: res.data.reviews || DEFAULT_PROVIDER_DATA.reviews,
+            services: res.data.services || [],
+            reviews: (res.data.reviews || []).map((review) => ({
+              ...review,
+              author: review.customerId?.name || 'Customer',
+              avatar: review.customerId?.avatar,
+              service: review.bookingId?.serviceId?.title || 'Completed service',
+              date: new Date(review.createdAt).toLocaleDateString(),
+            })),
           });
+        } else {
+          setLoadError('Provider not found.');
         }
-      } catch {
-        setProvider(DEFAULT_PROVIDER_DATA);
+      } catch (error) {
+        setLoadError(error.response?.data?.message || 'Could not load this provider.');
       } finally {
         setLoading(false);
       }
@@ -162,6 +63,15 @@ const ProviderProfilePage = () => {
 
     fetchProvider();
   }, [id]);
+
+  useEffect(() => {
+    if (!isAuthenticated || !id) return;
+    userService.getMe()
+      .then(({ data }) => setIsSaved(
+        (data.user?.savedProviders || []).some((savedProvider) => String(savedProvider._id) === String(id))
+      ))
+      .catch((error) => toast.error(error.response?.data?.message || 'Could not load saved providers'));
+  }, [id, isAuthenticated]);
 
   // Handle Save Provider
   const handleToggleSave = async () => {
@@ -172,10 +82,10 @@ const ProviderProfilePage = () => {
     }
     try {
       await userService.toggleSavedProvider(provider._id);
-      setIsSaved(!isSaved);
       toast.success(isSaved ? 'Removed from saved providers' : 'Saved to your providers ❤️');
-    } catch {
       setIsSaved(!isSaved);
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Could not update saved providers');
     }
   };
 
@@ -190,6 +100,14 @@ const ProviderProfilePage = () => {
       toast.success('Link copied to clipboard!');
     }
   };
+
+  if (loading) {
+    return <div className="min-h-screen bg-slate-50"><Navbar /><p className="p-12 text-center text-sm text-slate-500">Loading provider profile…</p></div>;
+  }
+
+  if (loadError) {
+    return <div className="min-h-screen bg-slate-50"><Navbar /><main className="mx-auto max-w-xl px-4 py-16 text-center"><h1 className="text-xl font-bold text-slate-900">Provider unavailable</h1><p className="mt-2 text-sm text-slate-600">{loadError}</p><Link to="/services" className="mt-5 inline-block rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white">Browse services</Link></main><Footer /></div>;
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 font-sans">
@@ -230,22 +148,20 @@ const ProviderProfilePage = () => {
                   </h1>
                   <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold">
                     <CheckCircle className="w-3.5 h-3.5" />
-                    Verified Provider
+                    Approved Provider
                   </span>
                 </div>
 
-                <p className="text-sm font-semibold text-blue-600">
-                  {provider.tagline || 'Laptop & Computer Repair Specialist'}
-                </p>
+                <p className="text-sm font-semibold text-blue-600">{provider.category}</p>
 
                 <div className="flex flex-wrap items-center gap-4 text-xs text-slate-500 pt-1">
                   <span className="flex items-center gap-1">
                     <MapPin className="w-4 h-4 text-slate-400" />
-                    {provider.location?.city || 'Belagavi'} · {provider.location?.distanceKm || 2} km away
+                    {[provider.location?.city, provider.location?.state].filter(Boolean).join(', ') || 'Location not provided'}
                   </span>
                   <span className="flex items-center gap-1 text-emerald-600 font-semibold">
                     <Clock className="w-4 h-4" />
-                    {provider.statusText || 'Open now · Closes at 8:00 PM'}
+                    {provider.businessHours || 'Business hours not provided'}
                   </span>
                 </div>
 
@@ -259,13 +175,20 @@ const ProviderProfilePage = () => {
                     <ArrowRight className="w-4 h-4" />
                   </Link>
 
-                  <a
-                    href={`tel:${provider.phone}`}
-                    className="px-4 py-2.5 bg-slate-50 hover:bg-slate-100 text-slate-700 font-semibold rounded-xl text-sm border border-slate-200 transition-colors flex items-center gap-2"
+                  <button
+                    onClick={() => {
+                      if (!isAuthenticated) {
+                        toast.error('Please login to message this provider');
+                        navigate('/login');
+                        return;
+                      }
+                      setChatOpen(true);
+                    }}
+                    className="px-4 py-2.5 bg-slate-50 hover:bg-slate-100 text-slate-700 font-semibold rounded-xl text-sm border border-slate-200 transition-colors flex items-center gap-2 cursor-pointer"
                   >
                     <MessageSquare className="w-4 h-4 text-slate-500" />
                     <span>Message</span>
-                  </a>
+                  </button>
 
                   <button
                     onClick={handleToggleSave}
@@ -291,50 +214,29 @@ const ProviderProfilePage = () => {
 
             </div>
 
-            {/* Right: Digital Trust Score Card */}
+            {/* Right: Provider profile information */}
             <div className="w-full lg:w-80 bg-gradient-to-br from-slate-50 to-blue-50/50 rounded-2xl border border-blue-100 p-5 shadow-xs">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                  Trust Score
+                  Provider information
                 </span>
                 <span className="text-xs font-bold text-blue-600 bg-blue-100/70 px-2 py-0.5 rounded-full">
-                  Tier 1 Certified
+                  Approved
                 </span>
               </div>
 
-              {/* Big Score Gauge */}
-              <div className="flex items-baseline gap-2 mb-2">
-                <span className="text-4xl font-black text-slate-900 tracking-tight">
-                  {provider.trustScore}
-                </span>
-                <span className="text-sm font-semibold text-slate-400">/ 100</span>
-              </div>
-
-              {/* Progress bar */}
-              <div className="w-full bg-slate-200 rounded-full h-2 mb-4 overflow-hidden">
-                <div
-                  className="bg-emerald-500 h-2 rounded-full transition-all duration-700"
-                  style={{ width: `${provider.trustScore}%` }}
-                />
-              </div>
-
-              {/* Checklist */}
               <div className="space-y-2 text-xs font-medium text-slate-700">
                 <div className="flex items-center gap-2">
                   <CheckCircle className="w-4 h-4 text-emerald-500 flex-shrink-0" />
-                  <span>Identity Verified</span>
+                  <span>Provider account reviewed by TrustHub</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckCircle className="w-4 h-4 text-emerald-500 flex-shrink-0" />
-                  <span>Contact Verified</span>
+                  <span>{provider.totalServicesCompleted || 0} completed bookings</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-emerald-500 flex-shrink-0" />
-                  <span>{provider.verificationDetails?.servicesCompleted || 127}+ Services Completed</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-emerald-500 flex-shrink-0" />
-                  <span>Positive Review History</span>
+                  <Star className="w-4 h-4 text-amber-500 flex-shrink-0" />
+                  <span>{Number(provider.averageRating || 0).toFixed(1)} average rating from {provider.totalReviews || 0} reviews</span>
                 </div>
               </div>
             </div>
@@ -348,10 +250,9 @@ const ProviderProfilePage = () => {
         <div className="flex items-center gap-2 border-b border-slate-200 overflow-x-auto pb-px">
           {[
             { id: 'overview', label: 'Overview' },
-            { id: 'services', label: `Services (${provider.services?.length || 4})` },
-            { id: 'reviews', label: `Reviews (${provider.totalReviews || 128})` },
+            { id: 'services', label: `Services (${provider.services?.length || 0})` },
+            { id: 'reviews', label: `Reviews (${provider.totalReviews || 0})` },
             { id: 'gallery', label: 'Gallery' },
-            { id: 'faq', label: 'Q&A' },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -383,7 +284,7 @@ const ProviderProfilePage = () => {
                 <div className="bg-white rounded-2xl border border-slate-200/90 p-6 space-y-5">
                   <h2 className="text-lg font-bold text-slate-900">About</h2>
                   <p className="text-sm text-slate-600 leading-relaxed">
-                    {provider.description}
+                    {provider.description || 'This provider has not added a description.'}
                   </p>
 
                   {/* Highlights Grid */}
@@ -428,13 +329,13 @@ const ProviderProfilePage = () => {
                           <h3 className="font-bold text-sm text-slate-900">{svc.title}</h3>
                           <p className="text-xs text-slate-500">{svc.description}</p>
                           <span className="inline-block text-[11px] font-medium text-slate-400">
-                            ⏱ {svc.duration}
+                            {svc.category}
                           </span>
                         </div>
                         <div className="flex items-center justify-between sm:justify-end w-full sm:w-auto gap-4">
                           <div className="text-right">
                             <span className="text-[10px] text-slate-400 uppercase font-semibold">Price</span>
-                            <p className="text-base font-bold text-slate-900">₹{svc.price}</p>
+                            <p className="text-base font-bold text-slate-900">₹{svc.priceRange?.min}–₹{svc.priceRange?.max}</p>
                           </div>
                           <Link
                             to={`/book/${provider._id}?serviceId=${svc._id}`}
@@ -445,13 +346,14 @@ const ProviderProfilePage = () => {
                         </div>
                       </div>
                     ))}
+                    {provider.services?.length === 0 && <p className="text-sm text-slate-500">No active services are listed.</p>}
                   </div>
                 </div>
 
                 {/* Recent Reviews Preview */}
                 <div className="bg-white rounded-2xl border border-slate-200/90 p-6 space-y-4">
                   <div className="flex items-center justify-between">
-                    <h2 className="text-lg font-bold text-slate-900">Verified Reviews</h2>
+                    <h2 className="text-lg font-bold text-slate-900">Booking-linked Reviews</h2>
                     <button
                       onClick={() => setActiveTab('reviews')}
                       className="text-xs font-semibold text-blue-600 hover:text-blue-700"
@@ -465,8 +367,8 @@ const ProviderProfilePage = () => {
                       <div key={rev._id} className="p-4 rounded-xl border border-slate-100 bg-slate-50/40 space-y-2">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 rounded-full bg-blue-100 text-sm flex items-center justify-center">
-                              {rev.avatar}
+                            <div className="w-8 h-8 rounded-full bg-blue-100 text-sm flex items-center justify-center overflow-hidden">
+                              {rev.avatar ? <img src={rev.avatar} alt="" className="h-full w-full object-cover" /> : rev.author?.charAt(0)}
                             </div>
                             <div>
                               <p className="text-xs font-bold text-slate-900">{rev.author}</p>
@@ -501,15 +403,13 @@ const ProviderProfilePage = () => {
                         <h3 className="font-bold text-base text-slate-900">{svc.title}</h3>
                         <p className="text-xs text-slate-600">{svc.description}</p>
                         <div className="flex items-center gap-3 pt-1 text-xs text-slate-400">
-                          <span>⏱ Estimated Time: {svc.duration}</span>
-                          <span>•</span>
-                          <span className="text-emerald-600 font-medium">✓ Genuine Parts</span>
+                          <span>{svc.category}</span>
                         </div>
                       </div>
                       <div className="flex items-center justify-between sm:justify-end w-full sm:w-auto gap-4 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
                         <div className="text-left sm:text-right">
                           <span className="text-[10px] text-slate-400 uppercase font-semibold">Standard Price</span>
-                          <p className="text-xl font-bold text-slate-900">₹{svc.price}</p>
+                          <p className="text-xl font-bold text-slate-900">₹{svc.priceRange?.min}–₹{svc.priceRange?.max}</p>
                         </div>
                         <Link
                           to={`/book/${provider._id}?serviceId=${svc._id}`}
@@ -520,6 +420,7 @@ const ProviderProfilePage = () => {
                       </div>
                     </div>
                   ))}
+                  {provider.services?.length === 0 && <p className="text-sm text-slate-500">No active services are listed.</p>}
                 </div>
               </div>
             )}
@@ -530,12 +431,12 @@ const ProviderProfilePage = () => {
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
                   <div>
                     <h2 className="text-lg font-bold text-slate-900">Customer Feedback</h2>
-                    <p className="text-xs text-slate-500">Only verified customers who finished a booking can review.</p>
+                    <p className="text-xs text-slate-500">Only customers with a completed booking can review.</p>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="flex items-center gap-1 text-2xl font-black text-slate-900">
                       <Star className="w-6 h-6 text-amber-500 fill-amber-500" />
-                      <span>{provider.averageRating}</span>
+                      <span>{Number(provider.averageRating || 0).toFixed(1)}</span>
                     </div>
                     <span className="text-xs text-slate-400">({provider.totalReviews} ratings)</span>
                   </div>
@@ -546,8 +447,8 @@ const ProviderProfilePage = () => {
                     <div key={rev._id} className="p-4 rounded-xl border border-slate-100 bg-slate-50/50 space-y-2">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-full bg-blue-100 text-base flex items-center justify-center">
-                            {rev.avatar}
+                          <div className="w-9 h-9 rounded-full bg-blue-100 text-base flex items-center justify-center overflow-hidden">
+                            {rev.avatar ? <img src={rev.avatar} alt="" className="h-full w-full object-cover" /> : rev.author?.charAt(0)}
                           </div>
                           <div>
                             <p className="text-sm font-bold text-slate-900">{rev.author}</p>
@@ -562,6 +463,7 @@ const ProviderProfilePage = () => {
                       <p className="text-xs sm:text-sm text-slate-700 leading-relaxed pt-1">{rev.comment}</p>
                     </div>
                   ))}
+                  {provider.reviews?.length === 0 && <p className="text-sm text-slate-500">No reviews yet.</p>}
                 </div>
               </div>
             )}
@@ -576,6 +478,7 @@ const ProviderProfilePage = () => {
                       <img src={img} alt={`Gallery ${index}`} className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
                     </div>
                   ))}
+                  {provider.gallery?.length === 0 && <p className="col-span-2 text-sm text-slate-500">No gallery images have been added.</p>}
                 </div>
               </div>
             )}
@@ -622,9 +525,7 @@ const ProviderProfilePage = () => {
                   <Phone className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
                   <div>
                     <p className="font-semibold text-slate-900">Phone</p>
-                    <a href={`tel:${provider.phone}`} className="text-blue-600 hover:underline mt-0.5 block">
-                      {provider.phone}
-                    </a>
+                    {provider.phone ? <a href={`tel:${provider.phone}`} className="text-blue-600 hover:underline mt-0.5 block">{provider.phone}</a> : <p className="mt-0.5 text-slate-500">Not provided</p>}
                   </div>
                 </div>
 
@@ -632,9 +533,7 @@ const ProviderProfilePage = () => {
                   <Mail className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
                   <div>
                     <p className="font-semibold text-slate-900">Email</p>
-                    <a href={`mailto:${provider.email}`} className="text-blue-600 hover:underline mt-0.5 block">
-                      {provider.email}
-                    </a>
+                    {provider.email ? <a href={`mailto:${provider.email}`} className="text-blue-600 hover:underline mt-0.5 block">{provider.email}</a> : <p className="mt-0.5 text-slate-500">Not provided</p>}
                   </div>
                 </div>
 
@@ -642,35 +541,35 @@ const ProviderProfilePage = () => {
                   <Clock className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
                   <div>
                     <p className="font-semibold text-slate-900">Business Hours</p>
-                    <p className="text-slate-500 mt-0.5">{provider.businessHours}</p>
+                    <p className="text-slate-500 mt-0.5">{provider.businessHours || 'Not provided'}</p>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* TrustHub Safety Guarantees */}
+            {/* TrustHub service information */}
             <div className="bg-blue-50/60 rounded-2xl border border-blue-100 p-5 space-y-3">
               <div className="flex items-center gap-2 text-blue-900 font-bold text-xs uppercase tracking-wider">
                 <Shield className="w-4 h-4 text-blue-600" />
-                <span>TrustHub Guarantees</span>
+                <span>TrustHub Information</span>
               </div>
 
               <div className="space-y-2 text-xs text-slate-700">
                 <div className="flex items-center gap-2">
                   <CheckCircle className="w-3.5 h-3.5 text-blue-600 flex-shrink-0" />
-                  <span>100% Genuine Spare Parts</span>
+                  <span>Provider profile is managed by its account owner</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckCircle className="w-3.5 h-3.5 text-blue-600 flex-shrink-0" />
-                  <span>30-Day Service Warranty</span>
+                  <span>Booking and message history stays in your account</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckCircle className="w-3.5 h-3.5 text-blue-600 flex-shrink-0" />
-                  <span>Verified Identity & Background</span>
+                  <span>This provider has been approved by TrustHub</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckCircle className="w-3.5 h-3.5 text-blue-600 flex-shrink-0" />
-                  <span>Protected Escrow Payments</span>
+                  <span>Payment is arranged directly with the provider</span>
                 </div>
               </div>
             </div>
@@ -679,6 +578,21 @@ const ProviderProfilePage = () => {
 
         </div>
       </main>
+
+      <ChatModal
+        isOpen={chatOpen}
+        onClose={() => setChatOpen(false)}
+        recipientUser={
+          provider.userId?._id
+            ? provider.userId
+            : {
+                _id: typeof provider.userId === 'string' ? provider.userId : provider._id,
+                name: provider.businessName,
+                phone: provider.phone,
+              }
+        }
+        providerInfo={provider}
+      />
 
       <Footer />
     </div>

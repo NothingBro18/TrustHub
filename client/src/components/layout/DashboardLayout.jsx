@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Menu, Bell, ChevronDown } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import Sidebar from './Sidebar';
+import { notificationService } from '../../services';
 
 const ROLE_BADGE = {
   customer: 'bg-blue-100 text-blue-700',
@@ -9,9 +11,18 @@ const ROLE_BADGE = {
   admin:    'bg-purple-100 text-purple-700',
 };
 
-const DashboardLayout = ({ children, navItems, notifCount = 0 }) => {
+const DashboardLayout = ({ children, navItems }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [notifCount, setNotifCount] = useState(0);
   const { user } = useAuth();
+
+  useEffect(() => {
+    let active = true;
+    notificationService.getNotifications({ limit: 1 })
+      .then(({ data }) => { if (active) setNotifCount(data.unreadCount || 0); })
+      .catch((error) => console.error('Failed to load unread notifications:', error));
+    return () => { active = false; };
+  }, []);
 
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden">
@@ -40,12 +51,12 @@ const DashboardLayout = ({ children, navItems, notifCount = 0 }) => {
           {/* Right: Notification + User */}
           <div className="flex items-center gap-3">
             {/* Notification bell */}
-            <button className="relative p-2 rounded-xl text-gray-500 hover:bg-gray-100 transition-colors">
+            <Link to="/notifications" aria-label="View notifications" className="relative p-2 rounded-xl text-gray-500 hover:bg-gray-100 transition-colors">
               <Bell className="w-5 h-5" />
               {notifCount > 0 && (
-                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full" />
+                <span className="absolute -right-1 -top-1 min-w-4 rounded-full bg-red-500 px-1 text-center text-[10px] font-bold text-white">{notifCount > 99 ? '99+' : notifCount}</span>
               )}
-            </button>
+            </Link>
 
             {/* User pill */}
             <div className="flex items-center gap-2.5 pl-3 border-l border-gray-200">

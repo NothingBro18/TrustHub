@@ -13,40 +13,6 @@ import { useAuth } from '../../context/AuthContext';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
 
-/* ── Fallback mock users if DB fetch fails ── */
-const MOCK_USERS = [
-  {
-    _id: 'u1',
-    name: 'Admin Sujal',
-    email: 'admin@trusthub.com',
-    role: 'admin',
-    isVerified: true,
-    phone: '+91 9980046013',
-    location: { city: 'Belagavi', state: 'Karnataka' },
-    createdAt: new Date().toISOString(),
-  },
-  {
-    _id: 'u2',
-    name: 'Rahul Patil',
-    email: 'customer@trusthub.com',
-    role: 'customer',
-    isVerified: true,
-    phone: '+91 97777 23456',
-    location: { city: 'Belagavi', state: 'Karnataka' },
-    createdAt: new Date().toISOString(),
-  },
-  {
-    _id: 'u3',
-    name: 'Arun Sharma',
-    email: 'provider@trusthub.com',
-    role: 'provider',
-    isVerified: true,
-    phone: '+91 96666 34567',
-    location: { city: 'Belagavi', state: 'Karnataka' },
-    createdAt: new Date().toISOString(),
-  },
-];
-
 const ROLE_BADGES = {
   customer: {
     bg: 'bg-blue-50 text-blue-700 border-blue-200',
@@ -67,12 +33,14 @@ const AdminUsers = () => {
 
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
   const [totalUsers, setTotalUsers] = useState(0);
 
   // Filters
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedRole, setSelectedRole] = useState('all');
   const [selectedVerified, setSelectedVerified] = useState('all');
+  const [selectedStatus, setSelectedStatus] = useState('all');
   const [page, setPage] = useState(1);
   const limit = 10;
 
@@ -93,6 +61,7 @@ const AdminUsers = () => {
   // Fetch users
   const fetchUsers = useCallback(async () => {
     setLoading(true);
+    setLoadError('');
     try {
       const params = {
         page,
@@ -100,6 +69,7 @@ const AdminUsers = () => {
       };
       if (selectedRole !== 'all') params.role = selectedRole;
       if (selectedVerified !== 'all') params.isVerified = selectedVerified;
+      if (selectedStatus !== 'all') params.status = selectedStatus;
       if (searchTerm.trim()) params.search = searchTerm.trim();
 
       const res = await adminService.getAllUsers(params);
@@ -107,14 +77,15 @@ const AdminUsers = () => {
         setUsers(res.data.users);
         setTotalUsers(res.data.total);
       }
-    } catch {
-      toast.error('Failed to load users from database. Showing local cache.');
-      setUsers(MOCK_USERS);
-      setTotalUsers(MOCK_USERS.length);
+    } catch (error) {
+    setLoadError(error.response?.data?.message || 'Failed to load users.');
+    setUsers([]);
+    setTotalUsers(0);
+    toast.error(error.response?.data?.message || 'Failed to load users');
     } finally {
       setLoading(false);
     }
-  }, [page, selectedRole, selectedVerified, searchTerm]);
+  }, [page, selectedRole, selectedVerified, selectedStatus, searchTerm]);
 
   useEffect(() => {
     fetchUsers();
@@ -130,6 +101,7 @@ const AdminUsers = () => {
     setSearchTerm('');
     setSelectedRole('all');
     setSelectedVerified('all');
+    setSelectedStatus('all');
     setPage(1);
   };
 
@@ -207,6 +179,7 @@ const AdminUsers = () => {
   return (
     <DashboardLayout navItems={ADMIN_NAV}>
       <div className="max-w-7xl mx-auto space-y-6">
+        {loadError && <p role="alert" className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">{loadError}</p>}
         
         {/* ── Page Header ── */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -325,7 +298,23 @@ const AdminUsers = () => {
               </select>
             </div>
 
-            {(searchTerm || selectedRole !== 'all' || selectedVerified !== 'all') && (
+            <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-xl px-3 py-1.5 text-xs font-semibold text-gray-600">
+              <span>Presence:</span>
+              <select
+                value={selectedStatus}
+                onChange={(e) => {
+                  setSelectedStatus(e.target.value);
+                  setPage(1);
+                }}
+                className="bg-transparent border-none text-xs font-bold text-gray-900 outline-none cursor-pointer"
+              >
+                <option value="all">All</option>
+                <option value="online">Online</option>
+                <option value="offline">Offline</option>
+              </select>
+            </div>
+
+            {(searchTerm || selectedRole !== 'all' || selectedVerified !== 'all' || selectedStatus !== 'all') && (
               <button
                 onClick={handleResetFilters}
                 className="text-xs font-semibold text-blue-600 hover:text-blue-800 px-2 py-1.5 rounded-lg hover:bg-blue-50 transition-colors cursor-pointer"

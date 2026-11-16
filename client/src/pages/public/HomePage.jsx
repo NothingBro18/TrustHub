@@ -1,13 +1,14 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import {
-  Search, Shield, CheckCircle, Star, Users, Wrench,
+  Search, Shield, CheckCircle, Star,
   Home, Smartphone, Car, GraduationCap, Palette,
   MoreHorizontal, Lock, MapPin, ArrowRight, Award,
-  Clock, ThumbsUp, ShieldCheck, Sparkles, ChevronRight
+  Clock, ThumbsUp, ShieldCheck, Sparkles
 } from 'lucide-react';
 import Navbar from '../../components/layout/Navbar';
 import Footer from '../../components/layout/Footer';
+import { providerService } from '../../services';
 
 const CATEGORIES = [
   { name: 'Home Services', icon: Home, color: 'bg-emerald-50 text-emerald-600 border-emerald-100 hover:border-emerald-300' },
@@ -18,75 +19,44 @@ const CATEGORIES = [
   { name: 'More Services', icon: MoreHorizontal, color: 'bg-slate-50 text-slate-600 border-slate-200 hover:border-slate-300' },
 ];
 
-const FEATURED_PROVIDERS = [
-  {
-    id: 'p1',
-    name: 'ABC Computers',
-    specialty: 'Laptop & Computer Repair Specialist',
-    location: 'Belagavi · 2 km away',
-    rating: 4.7,
-    reviews: 128,
-    trustScore: 92,
-    startingPrice: 300,
-    tags: ['Laptop Repair', 'Software', 'Hardware'],
-    avatar: '💻',
-  },
-  {
-    id: 'p2',
-    name: 'TechFix Solutions',
-    specialty: 'Smartphone & Screen Recovery Expert',
-    location: 'Belagavi · 3 km away',
-    rating: 4.8,
-    reviews: 86,
-    trustScore: 88,
-    startingPrice: 400,
-    tags: ['Mobile Repair', 'Data Recovery', 'OS Installation'],
-    avatar: '📱',
-  },
-  {
-    id: 'p3',
-    name: 'CoolHome Services',
-    specialty: 'AC Installation, Repair & Deep Clean',
-    location: 'Belagavi · 1.5 km away',
-    rating: 4.9,
-    reviews: 210,
-    trustScore: 95,
-    startingPrice: 500,
-    tags: ['AC Repair', 'Gas Refill', 'Maintenance'],
-    avatar: '❄️',
-  },
-];
-
 const HOW_IT_WORKS = [
   {
     step: '01',
     title: 'Search & Discover',
-    description: 'Find top-rated technicians, mechanics, and professionals right in your neighborhood.',
+    description: 'Explore service listings across home, technology, vehicle, education, and creative categories.',
     icon: Search,
   },
   {
     step: '02',
-    title: 'Check Trust Score',
-    description: 'Review verified credentials, real customer ratings, and transparent trust metrics.',
+    title: 'Review provider details',
+    description: 'Compare approved provider profiles, active service listings, and customer reviews.',
     icon: ShieldCheck,
   },
   {
     step: '03',
     title: 'Book & Schedule',
-    description: 'Describe your issue, pick your preferred date and time, and receive prompt confirmation.',
+    description: 'Describe your issue and request a preferred date and time for the provider to confirm.',
     icon: Clock,
   },
   {
     step: '04',
-    title: 'Enjoy Safe Service',
-    description: 'Experience secure completion with fair pricing and verified satisfaction ratings.',
+    title: 'Follow service progress',
+    description: 'Track booking status and communicate directly with your provider.',
     icon: ThumbsUp,
   },
 ];
 
 const HomePage = () => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [featuredProviders, setFeaturedProviders] = useState([]);
+  const [featuredError, setFeaturedError] = useState('');
   const navigate = useNavigate();
+
+  useEffect(() => {
+    providerService.getProviders({ limit: 3, sort: 'rating' })
+      .then(({ data }) => setFeaturedProviders(data.providers || []))
+      .catch((error) => setFeaturedError(error.response?.data?.message || 'Could not load providers'));
+  }, []);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -133,7 +103,7 @@ const HomePage = () => {
                   Find <span className="text-blue-600 underline decoration-blue-300 decoration-wavy decoration-2">Trusted</span> Service Providers Near You
                 </h1>
                 <p className="text-base sm:text-lg text-slate-600 max-w-xl font-normal leading-relaxed">
-                  <span className="font-semibold text-slate-800">Safe. Verified. Reliable.</span> Your all-in-one platform for local services with guaranteed digital trust records.
+                  <span className="font-semibold text-slate-800">Local services, clearly organized.</span> Compare provider profiles, request bookings, and review service history in one place.
                 </p>
               </div>
 
@@ -189,20 +159,20 @@ const HomePage = () => {
               <div className="pt-4 border-t border-slate-200/80 max-w-xl">
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                   <div>
-                    <p className="text-2xl font-black text-slate-900">1,200+</p>
-                    <p className="text-xs text-slate-500 font-medium">Verified Providers</p>
+                    <p className="text-sm font-bold text-slate-900">Approved</p>
+                    <p className="text-xs text-slate-500 font-medium">Provider profiles</p>
                   </div>
                   <div>
-                    <p className="text-2xl font-black text-slate-900">5,000+</p>
-                    <p className="text-xs text-slate-500 font-medium">Services Done</p>
+                    <p className="text-sm font-bold text-slate-900">Bookings</p>
+                    <p className="text-xs text-slate-500 font-medium">Managed in one place</p>
                   </div>
                   <div>
-                    <p className="text-2xl font-black text-slate-900">4.7/5</p>
-                    <p className="text-xs text-slate-500 font-medium">Average Rating</p>
+                    <p className="text-sm font-bold text-slate-900">Reviews</p>
+                    <p className="text-xs text-slate-500 font-medium">From completed bookings</p>
                   </div>
                   <div>
-                    <p className="text-2xl font-black text-blue-600">100%</p>
-                    <p className="text-xs text-slate-500 font-medium">Safer Community</p>
+                    <p className="text-sm font-bold text-blue-600">Messages</p>
+                    <p className="text-xs text-slate-500 font-medium">Contact providers directly</p>
                   </div>
                 </div>
               </div>
@@ -226,12 +196,12 @@ const HomePage = () => {
                           <Shield className="w-4 h-4" />
                         </div>
                         <div>
-                          <p className="text-xs font-bold text-slate-900">TrustHub Verified</p>
-                          <p className="text-[10px] text-slate-400">Official Standards</p>
+                          <p className="text-xs font-bold text-slate-900">TrustHub Marketplace</p>
+                          <p className="text-[10px] text-slate-400">Provider profiles and bookings</p>
                         </div>
                       </div>
                       <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
-                        Top Rated
+                        {featuredProviders[0] ? 'Approved listing' : 'Browse services'}
                       </span>
                     </div>
 
@@ -251,14 +221,14 @@ const HomePage = () => {
                         </div>
                       </div>
 
-                      <h3 className="text-lg font-bold text-slate-900">Arun Sharma</h3>
-                      <p className="text-xs text-blue-600 font-semibold">Master Certified Technician</p>
+                      <h3 className="text-lg font-bold text-slate-900">{featuredProviders[0]?.businessName || 'Find a provider'}</h3>
+                      <p className="text-xs text-blue-600 font-semibold">{featuredProviders[0]?.category || 'Search local services'}</p>
                       
                       {/* Rating pill */}
                       <div className="flex items-center gap-1.5 mt-2 bg-white px-3 py-1 rounded-full shadow-xs border border-slate-200">
                         <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
-                        <span className="text-xs font-bold text-slate-800">4.9</span>
-                        <span className="text-xs text-slate-400">(184 jobs completed)</span>
+                        <span className="text-xs font-bold text-slate-800">{Number(featuredProviders[0]?.averageRating || 0).toFixed(1)}</span>
+                        <span className="text-xs text-slate-400">({featuredProviders[0]?.totalReviews || 0} reviews)</span>
                       </div>
                     </div>
 
@@ -266,35 +236,22 @@ const HomePage = () => {
                     <div className="grid grid-cols-2 gap-2.5 pt-2">
                       <div className="flex items-center gap-2 p-2 rounded-xl bg-slate-50 border border-slate-100 text-xs font-medium text-slate-700">
                         <CheckCircle className="w-4 h-4 text-emerald-500 flex-shrink-0" />
-                        <span>Identity Verified</span>
+                        <span>Approved provider profiles</span>
                       </div>
                       <div className="flex items-center gap-2 p-2 rounded-xl bg-slate-50 border border-slate-100 text-xs font-medium text-slate-700">
                         <Award className="w-4 h-4 text-blue-500 flex-shrink-0" />
-                        <span>Background Checked</span>
+                        <span>Service listings</span>
                       </div>
                       <div className="flex items-center gap-2 p-2 rounded-xl bg-slate-50 border border-slate-100 text-xs font-medium text-slate-700">
                         <MapPin className="w-4 h-4 text-purple-500 flex-shrink-0" />
-                        <span>Local & On-Time</span>
+                        <span>Booking management</span>
                       </div>
                       <div className="flex items-center gap-2 p-2 rounded-xl bg-slate-50 border border-slate-100 text-xs font-medium text-slate-700">
                         <Lock className="w-4 h-4 text-amber-500 flex-shrink-0" />
-                        <span>Escrow Protected</span>
+                        <span>Direct provider messaging</span>
                       </div>
                     </div>
 
-                  </div>
-                </div>
-
-                {/* Floating Trust Score Badge */}
-                <div className="absolute -bottom-6 -left-6 bg-white p-3.5 rounded-2xl shadow-xl border border-slate-100 flex items-center gap-3 animate-bounce [animation-duration:3s]">
-                  <div className="w-11 h-11 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold text-base shadow-sm">
-                    94
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold text-slate-900">Trust Score</p>
-                    <p className="text-[10px] text-emerald-600 font-semibold flex items-center gap-1">
-                      <CheckCircle className="w-2.5 h-2.5" /> Highly Trusted
-                    </p>
                   </div>
                 </div>
 
@@ -319,7 +276,7 @@ const HomePage = () => {
                 Top Rated Local Providers
               </h2>
               <p className="text-sm text-slate-500 mt-1">
-                Hand-picked verified specialists ready to serve in your area.
+                Provider profiles currently approved on TrustHub.
               </p>
             </div>
             <Link
@@ -332,43 +289,40 @@ const HomePage = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {FEATURED_PROVIDERS.map((provider) => (
+            {featuredProviders.map((provider) => (
               <div
-                key={provider.id}
+                key={provider._id}
                 className="group relative bg-white rounded-2xl border border-slate-200/90 p-5 shadow-xs hover:shadow-xl hover:border-blue-300 transition-all duration-200 flex flex-col justify-between"
               >
                 <div>
                   <div className="flex items-start justify-between gap-3 mb-3">
                     <div className="flex items-center gap-3">
                       <div className="w-12 h-12 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-2xl group-hover:scale-105 transition-transform">
-                        {provider.avatar}
+                        {provider.businessName?.charAt(0)?.toUpperCase() || 'P'}
                       </div>
                       <div>
                         <h3 className="font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
-                          {provider.name}
+                          {provider.businessName}
                         </h3>
                         <p className="text-xs text-slate-500 flex items-center gap-1 mt-0.5">
                           <MapPin className="w-3 h-3 text-slate-400" />
-                          {provider.location}
+                          {[provider.location?.city, provider.location?.state].filter(Boolean).join(', ') || 'Location not provided'}
                         </p>
                       </div>
                     </div>
 
-                    {/* Trust Score Pill */}
-                    <div className="flex flex-col items-end">
-                      <span className="text-[10px] font-bold text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-full">
-                        Trust {provider.trustScore}/100
-                      </span>
-                    </div>
+                    <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+                      Approved
+                    </span>
                   </div>
 
                   <p className="text-xs text-slate-600 line-clamp-2 mb-3">
-                    {provider.specialty}
+                    {provider.description || provider.category}
                   </p>
 
                   {/* Tags */}
                   <div className="flex flex-wrap gap-1.5 mb-4">
-                    {provider.tags.map((tag) => (
+                    {(provider.tags || []).map((tag) => (
                       <span
                         key={tag}
                         className="text-[11px] font-medium bg-slate-100 text-slate-600 px-2.5 py-0.5 rounded-md"
@@ -383,11 +337,11 @@ const HomePage = () => {
                   <div>
                     <span className="text-[10px] text-slate-400 uppercase font-semibold">Starting from</span>
                     <p className="text-base font-bold text-slate-900">
-                      ₹{provider.startingPrice}
+                      {provider.priceFrom != null ? `₹${provider.priceFrom}` : 'Price on request'}
                     </p>
                   </div>
                   <Link
-                    to={`/providers/${provider.id}`}
+                    to={`/providers/${provider._id}`}
                     className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-xl shadow-xs transition-colors"
                   >
                     View Profile
@@ -396,6 +350,8 @@ const HomePage = () => {
               </div>
             ))}
           </div>
+          {featuredError && <p role="alert" className="mt-4 text-sm text-red-600">{featuredError}</p>}
+          {!featuredError && featuredProviders.length === 0 && <p className="mt-4 text-center text-sm text-slate-500">No approved providers are available yet.</p>}
 
         </div>
       </section>
@@ -406,13 +362,13 @@ const HomePage = () => {
           
           <div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
             <span className="text-xs font-bold text-blue-600 uppercase tracking-widest bg-blue-50 border border-blue-100 px-3 py-1 rounded-full">
-              Simple & Reliable
+              Four booking steps
             </span>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
-              How TrustHub Protects Your Service Experience
+              How Booking Works
             </h2>
             <p className="text-base text-slate-600">
-              Four easy steps from booking to completion with verifiable trust at every stage.
+              Follow each request from provider discovery through service completion.
             </p>
           </div>
 
@@ -448,39 +404,39 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* ── DIGITAL TRUST SCORE EXPLANATION ── */}
-      <section id="trust-score" className="py-16 bg-gradient-to-r from-blue-900 via-slate-900 to-indigo-950 text-white relative overflow-hidden">
+      {/* ── PROVIDER TRUST INFORMATION ── */}
+      <section id="provider-information" className="py-16 bg-gradient-to-r from-blue-900 via-slate-900 to-indigo-950 text-white relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
             
             <div className="lg:col-span-7 space-y-5">
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/20 text-blue-300 border border-blue-400/30 text-xs font-semibold">
                 <Shield className="w-3.5 h-3.5" />
-                Digital Trust Architecture
+                Provider information
               </span>
               <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight">
-                What is the TrustHub Digital Trust Score?
+                Make informed service decisions
               </h2>
               <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
-                Unlike traditional marketplaces where ratings can be forged or manipulated, TrustHub assigns every service provider an algorithmic Trust Score between 0 and 100 based on verified real-world factors:
+                Review the information available on each provider profile. Administrators approve provider listings, reviews are linked to completed bookings, and booking status is visible to the people involved. Approval does not certify identity or service quality.
               </p>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
                 <div className="bg-white/5 border border-white/10 rounded-xl p-4">
-                  <p className="font-semibold text-white text-sm">Identity & Credentials (30%)</p>
-                  <p className="text-xs text-slate-400 mt-1">Government ID verification, trade licenses, and physical address checks.</p>
+                  <p className="font-semibold text-white text-sm">Provider verification</p>
+                  <p className="text-xs text-slate-400 mt-1">Administrators approve provider listings before they appear in search.</p>
                 </div>
                 <div className="bg-white/5 border border-white/10 rounded-xl p-4">
-                  <p className="font-semibold text-white text-sm">Service Completion Rate (25%)</p>
-                  <p className="text-xs text-slate-400 mt-1">Consistency of finishing accepted bookings without arbitrary cancellations.</p>
+                  <p className="font-semibold text-white text-sm">Service details</p>
+                  <p className="text-xs text-slate-400 mt-1">Compare active services and their provider-listed price ranges.</p>
                 </div>
                 <div className="bg-white/5 border border-white/10 rounded-xl p-4">
-                  <p className="font-semibold text-white text-sm">Verified Reviews Only (25%)</p>
-                  <p className="text-xs text-slate-400 mt-1">Reviews can strictly only be submitted after an authenticated booking completion.</p>
+                  <p className="font-semibold text-white text-sm">Booking-linked reviews</p>
+                  <p className="text-xs text-slate-400 mt-1">Customers can review a provider after a completed booking.</p>
                 </div>
                 <div className="bg-white/5 border border-white/10 rounded-xl p-4">
-                  <p className="font-semibold text-white text-sm">Dispute & Flag History (20%)</p>
-                  <p className="text-xs text-slate-400 mt-1">Automated deduction if suspicious activity or unresolved disputes occur.</p>
+                  <p className="font-semibold text-white text-sm">Booking status</p>
+                  <p className="text-xs text-slate-400 mt-1">Customers and providers can follow each request through its status.</p>
                 </div>
               </div>
             </div>
@@ -488,21 +444,20 @@ const HomePage = () => {
             <div className="lg:col-span-5 flex justify-center">
               <div className="w-full max-w-sm bg-white/10 backdrop-blur-md border border-white/20 rounded-3xl p-6 text-center space-y-4">
                 <div className="w-24 h-24 mx-auto rounded-full bg-gradient-to-tr from-blue-500 to-emerald-400 p-1 flex items-center justify-center">
-                  <div className="w-full h-full rounded-full bg-slate-900 flex flex-col items-center justify-center">
-                    <span className="text-3xl font-extrabold text-white">96</span>
-                    <span className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Score</span>
+                  <div className="w-full h-full rounded-full bg-slate-900 flex items-center justify-center">
+                    <Shield className="w-10 h-10 text-emerald-300" />
                   </div>
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-white">Exemplary Trust Tier</h3>
-                  <p className="text-xs text-slate-300 mt-1">Qualifies for guaranteed bookings and zero-security deposit requests.</p>
+                  <h3 className="text-lg font-bold text-white">Clear platform records</h3>
+                  <p className="text-xs text-slate-300 mt-1">Review provider information and agree on service and payment details directly.</p>
                 </div>
                 <div className="pt-2">
                   <Link
                     to="/signup"
                     className="block w-full py-2.5 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-xl text-sm transition-colors shadow-lg shadow-blue-500/30"
                   >
-                    Build Your Trust Score Today
+                    Create Your Provider Profile
                   </Link>
                 </div>
               </div>
@@ -519,7 +474,7 @@ const HomePage = () => {
             Are You a Local Service Professional?
           </h2>
           <p className="text-slate-600 max-w-2xl mx-auto text-sm sm:text-base">
-            Grow your client base with customers who respect verified expertise. Build your online reputation, accept bookings effortlessly, and manage your earnings.
+            Create a provider profile, submit service listings for approval, and manage incoming booking requests.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
             <Link

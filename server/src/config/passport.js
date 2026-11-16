@@ -20,12 +20,14 @@ if (
       },
       async (accessToken, refreshToken, profile, done) => {
         try {
-          let user = await User.findOne({ email: profile.emails[0].value });
+          const email = profile.emails?.[0]?.value;
+          if (!email) return done(new Error('Google did not provide an email address'), null);
+          let user = await User.findOne({ email });
           if (!user) {
             user = await User.create({
-              name: profile.displayName,
-              email: profile.emails[0].value,
-              avatar: profile.photos[0]?.value,
+              name: profile.displayName || email.split('@')[0],
+              email,
+              avatar: profile.photos?.[0]?.value,
               oauthProvider: 'google',
               oauthId: profile.id,
               isVerified: true,
@@ -58,12 +60,13 @@ if (
       async (accessToken, refreshToken, profile, done) => {
         try {
           const email = profile.emails?.[0]?.value;
+          if (!email) return done(new Error('GitHub did not provide an email address'), null);
           let user = await User.findOne({ email });
           if (!user) {
             user = await User.create({
               name: profile.displayName || profile.username,
               email,
-              avatar: profile.photos[0]?.value,
+              avatar: profile.photos?.[0]?.value,
               oauthProvider: 'github',
               oauthId: profile.id,
               isVerified: true,

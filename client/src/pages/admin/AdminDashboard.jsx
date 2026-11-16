@@ -2,10 +2,10 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Users, Shield, CalendarDays, Flag,
-  ArrowRight, TrendingUp, AlertTriangle, CheckCircle2,
+  ArrowRight, TrendingUp, AlertTriangle, CheckCircle2, Activity, Wrench,
 } from 'lucide-react';
 import {
-  LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer,
+  XAxis, YAxis, Tooltip, ResponsiveContainer,
   CartesianGrid, AreaChart, Area,
 } from 'recharts';
 import DashboardLayout from '../../components/layout/DashboardLayout';
@@ -13,31 +13,6 @@ import StatCard from '../../components/ui/StatCard';
 import { adminService } from '../../services';
 import { ADMIN_NAV } from '../../utils/constants';
 import { format } from 'date-fns';
-
-/* ── Mock data ─────────────────────────────────────────────────────── */
-const MOCK_STATS = {
-  totalUsers: 1248,
-  verifiedProviders: 183,
-  activeBookings: 76,
-  flaggedActivities: 9,
-};
-
-const MOCK_FLAGGED = [
-  { _id: 'f1', type: 'unusual_review',    description: 'Unusual review activity detected',  userId: { name: 'user_234' },      severity: 'high',   createdAt: '2026-08-10T11:40:00Z' },
-  { _id: 'f2', type: 'suspicious_account', description: 'Suspicious account behavior',       userId: { name: 'new_service123' }, severity: 'medium', createdAt: '2026-08-09T22:15:00Z' },
-  { _id: 'f3', type: 'multiple_reviews',  description: 'Multiple reviews (same text)',       userId: { name: 'TechFix Solutions' }, severity: 'medium', createdAt: '2026-08-08T11:40:00Z' },
-  { _id: 'f4', type: 'failed_login',      description: 'Multiple failed login attempts',     userId: { name: 'rahul_09' },      severity: 'low',    createdAt: '2026-08-07T06:12:00Z' },
-];
-
-const MOCK_REGISTRATIONS = [
-  { _id: 'Aug 1',  count: 80  },
-  { _id: 'Aug 5',  count: 120 },
-  { _id: 'Aug 10', count: 95  },
-  { _id: 'Aug 15', count: 160 },
-  { _id: 'Aug 20', count: 130 },
-  { _id: 'Aug 25', count: 175 },
-  { _id: 'Aug 31', count: 200 },
-];
 
 /* ── Severity badge ─────────────────────────────────────────────────*/
 const SeverityBadge = ({ severity }) => {
@@ -64,20 +39,19 @@ const AdminDashboard = () => {
   const [stats, setStats]       = useState(null);
   const [flagged, setFlagged]   = useState([]);
   const [regData, setRegData]   = useState([]);
+  const [loadError, setLoadError] = useState('');
 
   useEffect(() => {
     const fetch = async () => {
       try {
         const res = await adminService.getStats();
         setStats(res.data.stats);
-        setRegData(res.data.userRegistrations || MOCK_REGISTRATIONS);
+        setRegData(res.data.userRegistrations || []);
 
         const flagRes = await adminService.getFlaggedActivities({ resolved: false });
         setFlagged(flagRes.data.activities || []);
-      } catch {
-        setStats(MOCK_STATS);
-        setFlagged(MOCK_FLAGGED);
-        setRegData(MOCK_REGISTRATIONS);
+      } catch (error) {
+        setLoadError(error.response?.data?.message || 'Could not load admin dashboard.');
       } finally {
         setLoading(false);
       }
@@ -94,10 +68,17 @@ const AdminDashboard = () => {
       value: stats?.totalUsers?.toLocaleString() ?? '—',
     },
     {
+      icon: Activity,
+      iconBg: 'bg-emerald-100',
+      iconColor: 'text-emerald-600',
+      label: 'Active Now (Online)',
+      value: stats?.onlineUsers ?? '0',
+    },
+    {
       icon: Shield,
       iconBg: 'bg-green-100',
       iconColor: 'text-green-600',
-      label: 'Verified Providers',
+      label: 'Approved Providers',
       value: stats?.verifiedProviders ?? '—',
     },
     {
@@ -117,8 +98,9 @@ const AdminDashboard = () => {
   ];
 
   return (
-    <DashboardLayout navItems={ADMIN_NAV} notifCount={stats?.flaggedActivities || 9}>
+    <DashboardLayout navItems={ADMIN_NAV}>
       <div className="max-w-6xl mx-auto space-y-6">
+        {loadError && <p role="alert" className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">{loadError}</p>}
 
         {/* ── Header ── */}
         <div className="flex items-start justify-between">
@@ -133,9 +115,9 @@ const AdminDashboard = () => {
         </div>
 
         {/* ── Stat cards ── */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
           {loading
-            ? Array(4).fill(0).map((_, i) => <Skeleton key={i} className="h-24" />)
+            ? Array(5).fill(0).map((_, i) => <Skeleton key={i} className="h-24" />)
             : statCards.map((c) => <StatCard key={c.label} {...c} />)
           }
         </div>
@@ -201,6 +183,7 @@ const AdminDashboard = () => {
                 {[
                   { label: 'Manage Users',       to: '/admin/users',     icon: Users,       color: 'text-blue-600',   bg: 'bg-blue-50'   },
                   { label: 'Verify Providers',   to: '/admin/providers', icon: Shield,      color: 'text-green-600',  bg: 'bg-green-50'  },
+                  { label: 'Moderate Services',   to: '/admin/services',  icon: Wrench,      color: 'text-indigo-600', bg: 'bg-indigo-50' },
                   { label: 'Flagged Activities', to: '/admin/flagged',   icon: Flag,        color: 'text-red-500',    bg: 'bg-red-50'    },
                   { label: 'View Reports',       to: '/admin/reports',   icon: TrendingUp,  color: 'text-purple-600', bg: 'bg-purple-50' },
                 ].map(({ label, to, icon: Icon, color, bg }) => (
@@ -219,27 +202,6 @@ const AdminDashboard = () => {
               </div>
             </div>
 
-            {/* Platform health */}
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-              <h2 className="text-sm font-bold text-gray-900 mb-3">Platform Health</h2>
-              <div className="space-y-3">
-                {[
-                  { label: 'API Uptime',         value: '99.9%', color: 'bg-green-500', pct: 99 },
-                  { label: 'Verified Providers', value: '87%',   color: 'bg-blue-500',  pct: 87 },
-                  { label: 'Booking Success',    value: '94%',   color: 'bg-purple-500',pct: 94 },
-                ].map(({ label, value, color, pct }) => (
-                  <div key={label}>
-                    <div className="flex justify-between text-xs mb-1">
-                      <span className="text-gray-500">{label}</span>
-                      <span className="font-semibold text-gray-700">{value}</span>
-                    </div>
-                    <div className="w-full bg-gray-100 rounded-full h-1.5">
-                      <div className={`${color} h-1.5 rounded-full transition-all duration-700`} style={{ width: `${pct}%` }} />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
           </div>
         </div>
 
@@ -250,7 +212,7 @@ const AdminDashboard = () => {
               <h2 className="text-base font-bold text-gray-900">User Registrations</h2>
               <p className="text-xs text-gray-400 mt-0.5 flex items-center gap-1">
                 <TrendingUp className="w-3 h-3 text-green-500" />
-                <span className="text-green-600 font-semibold">+12%</span> vs last month
+                Registrations by day
               </p>
             </div>
             <div className="flex items-center gap-2 text-xs text-gray-500">
@@ -258,7 +220,7 @@ const AdminDashboard = () => {
               New Users
             </div>
           </div>
-          <ResponsiveContainer width="100%" height={200}>
+          {regData.length ? <ResponsiveContainer width="100%" height={200}>
             <AreaChart data={regData}>
               <defs>
                 <linearGradient id="regGrad" x1="0" y1="0" x2="0" y2="1">
@@ -275,7 +237,7 @@ const AdminDashboard = () => {
               />
               <Area type="monotone" dataKey="count" stroke="#3b82f6" strokeWidth={2.5} fill="url(#regGrad)" dot={{ fill: '#3b82f6', r: 3 }} />
             </AreaChart>
-          </ResponsiveContainer>
+          </ResponsiveContainer> : <p className="py-12 text-center text-sm text-gray-500">No registrations in the last 30 days.</p>}
         </div>
 
       </div>

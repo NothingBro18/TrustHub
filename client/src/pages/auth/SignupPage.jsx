@@ -45,7 +45,7 @@ const SignupPage = () => {
   const onSubmit = async (data) => {
     setLoading(true);
     try {
-      const { confirmPassword, ...submitData } = data;
+      const { confirmPassword: _confirmPassword, ...submitData } = data;
       const user = await authRegister(submitData);
       toast.success(`Welcome to TrustHub, ${user.name.split(' ')[0]}! 🎉`);
       const redirectMap = { customer: '/dashboard', provider: '/provider/dashboard' };
@@ -82,32 +82,30 @@ const SignupPage = () => {
           <div className="space-y-6">
             <div className="space-y-3">
               <h1 className="text-4xl font-bold text-white leading-tight">
-                Join Our<br />
-                <span className="text-blue-200">Trusted</span><br />
-                Community
+                Join the<br />
+                <span className="text-blue-200">TrustHub</span><br />
+                Marketplace
               </h1>
               <p className="text-blue-100 text-lg leading-relaxed">
-                Connect with 1,200+ verified service providers or list your own services today.
+                Create a customer account to request services, or a provider account to submit listings for administrator approval.
               </p>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3">
               {[
-                { number: '1,200+', label: 'Verified Providers' },
-                { number: '5,000+', label: 'Services Completed' },
-                { number: '4.7/5', label: 'Average Rating' },
-                { number: '100%', label: 'Safer Community' },
-              ].map((stat) => (
-                <div key={stat.label} className="bg-white/10 backdrop-blur rounded-xl p-4 border border-white/20 text-center">
-                  <div className="text-2xl font-bold text-white">{stat.number}</div>
-                  <div className="text-xs text-blue-200 mt-0.5">{stat.label}</div>
+                'Customers can browse active provider listings and request bookings.',
+                'Provider listings become public after administrator approval.',
+                'Payments are arranged directly; TrustHub does not process them.',
+              ].map((detail) => (
+                <div key={detail} className="bg-white/10 backdrop-blur rounded-xl p-4 border border-white/20 text-sm text-blue-100">
+                  {detail}
                 </div>
               ))}
             </div>
           </div>
 
           <div className="text-blue-200 text-sm font-medium">
-            Services you can trust · People you can rely on
+            Local service discovery and booking management
           </div>
         </div>
       </div>
@@ -187,7 +185,7 @@ const SignupPage = () => {
               <input
                 {...register('name')}
                 type="text"
-                placeholder="Sujal Patil"
+                placeholder="Sujal"
                 className={`w-full px-4 py-3 rounded-xl border text-sm outline-none transition-all
                   ${errors.name
                     ? 'border-red-400 bg-red-50 focus:ring-2 focus:ring-red-200'

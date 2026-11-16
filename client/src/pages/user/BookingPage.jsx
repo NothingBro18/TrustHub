@@ -1,14 +1,12 @@
 import { useState, useEffect } from 'react';
-import { useParams, useSearchParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useSearchParams, Link } from 'react-router-dom';
 import {
   Check, ArrowRight, ArrowLeft, Upload, Calendar, Clock,
-  MapPin, Shield, Star, CheckCircle, AlertCircle, FileText,
-  CreditCard, CheckCircle2, ChevronRight, X
+  MapPin, Shield, Star, CheckCircle, CheckCircle2, X
 } from 'lucide-react';
 import Navbar from '../../components/layout/Navbar';
 import Footer from '../../components/layout/Footer';
 import { bookingService, providerService } from '../../services';
-import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
 
 const STEPS = [
@@ -19,76 +17,74 @@ const STEPS = [
   { id: 5, name: 'Done' },
 ];
 
-const SERVICE_OPTIONS = [
-  { id: 'opt1', name: 'Laptop Repair & Diagnostics', priceRange: '₹300 - ₹800' },
-  { id: 'opt2', name: 'Screen Replacement', priceRange: '₹1,500 - ₹2,500' },
-  { id: 'opt3', name: 'Battery Replacement', priceRange: '₹1,200 - ₹1,800' },
-  { id: 'opt4', name: 'OS & Software Installation', priceRange: '₹300 - ₹600' },
-  { id: 'opt5', name: 'Motherboard Chip-level Repair', priceRange: '₹800 - ₹1,500' },
-  { id: 'opt6', name: 'General Maintenance & Cleaning', priceRange: '₹350 - ₹500' },
-];
-
-const TIME_SLOTS = [
-  '09:00 AM', '10:00 AM', '11:00 AM', '12:00 PM',
-  '02:00 PM', '03:00 PM', '04:00 PM', '05:00 PM', '06:00 PM'
-];
-
 const BookingPage = () => {
   const { providerId } = useParams();
   const [searchParams] = useSearchParams();
   const serviceIdParam = searchParams.get('serviceId');
-  const navigate = useNavigate();
-  const { user } = useAuth();
-
   // Current Step state (1 to 5)
   const [currentStep, setCurrentStep] = useState(1);
 
   // Form State
-  const [serviceType, setServiceType] = useState('Laptop Repair & Diagnostics');
-  const [estimatedPrice, setEstimatedPrice] = useState('₹300 - ₹800');
+  const [serviceType, setServiceType] = useState('');
+  const [services, setServices] = useState([]);
+  const [selectedServiceId, setSelectedServiceId] = useState(serviceIdParam || '');
+  const [pageError, setPageError] = useState('');
+  const [estimatedPrice, setEstimatedPrice] = useState('');
   const [issueDescription, setIssueDescription] = useState('');
   const [selectedImages, setSelectedImages] = useState([]);
+  const [minimumDate] = useState(() => {
+    const date = new Date();
+    date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
+    return date.toISOString().split('T')[0];
+  });
   const [scheduledDate, setScheduledDate] = useState(() => {
     const d = new Date();
     d.setDate(d.getDate() + 1);
+    d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
     return d.toISOString().split('T')[0];
   });
-  const [scheduledTime, setScheduledTime] = useState('11:00 AM');
+  const [scheduledTime, setScheduledTime] = useState('11:00');
   const [serviceMode, setServiceMode] = useState('doorstep'); // 'doorstep' or 'shop_visit'
-  const [address, setAddress] = useState('House 42, 2nd Main, Tilakwadi, Belagavi');
-  const [paymentMethod, setPaymentMethod] = useState('cod'); // 'cod' or 'escrow'
+  const [address, setAddress] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [bookingRefId, setBookingRefId] = useState('');
 
   // Provider Data
-  const [provider, setProvider] = useState({
-    _id: providerId || '66d01234abc0000000000001',
-    businessName: 'ABC Computers',
-    category: 'Laptop Repair',
-    averageRating: 4.7,
-    totalReviews: 128,
-    trustScore: 92,
-    location: { city: 'Belagavi', distanceKm: 2 },
-    isVerified: true,
-  });
+  const [provider, setProvider] = useState(null);
 
   useEffect(() => {
-    if (providerId) {
-      providerService.getProvider(providerId)
-        .then((res) => {
-          if (res.data?.provider) setProvider(res.data.provider);
-        })
-        .catch(() => {
-          // Keep default ABC Computers
-        });
-    }
-  }, [providerId]);
+    let active = true;
+    const load = async () => {
+      try {
+        const { data } = await providerService.getProvider(providerId);
+        if (!active || !data?.provider) return;
+        const availableServices = data.services || [];
+        setProvider(data.provider);
+        setServices(availableServices);
+        const initialService = availableServices.find((service) => service._id === serviceIdParam) || availableServices[0];
+        if (!initialService) setPageError('This provider has no active services available to book.');
+        else {
+          setSelectedServiceId(initialService._id);
+          setEstimatedPrice(`₹${initialService.priceRange.min} – ₹${initialService.priceRange.max}`);
+          setServiceType(initialService.title);
+        }
+      } catch (error) {
+        if (active) setPageError(error.response?.data?.message || 'Could not load this provider. Please try again.');
+      }
+    };
+    load();
+    return () => { active = false; };
+  }, [providerId, serviceIdParam]);
 
   // Handle image selection
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
     if (files.length + selectedImages.length > 5) {
       toast.error('You can upload a maximum of 5 images');
+      return;
+    }
+    if (files.some((file) => file.size > 5 * 1024 * 1024)) {
+      toast.error('Each image must be 5 MB or smaller');
       return;
     }
     setSelectedImages((prev) => [...prev, ...files]);
@@ -100,39 +96,40 @@ const BookingPage = () => {
 
   // Service change
   const handleServiceSelect = (e) => {
-    const val = e.target.value;
-    setServiceType(val);
-    const found = SERVICE_OPTIONS.find((s) => s.name === val);
-    if (found) setEstimatedPrice(found.priceRange);
+    const service = services.find((item) => item._id === e.target.value);
+    if (!service) return;
+    setSelectedServiceId(service._id);
+    setServiceType(service.title);
+    setEstimatedPrice(`₹${service.priceRange.min} – ₹${service.priceRange.max}`);
   };
 
   // Submit Booking to Backend
   const handleFinalizeBooking = async () => {
+    if (!selectedServiceId || !scheduledDate || !scheduledTime || (serviceMode === 'doorstep' && !address.trim())) {
+      toast.error('Choose a service, date, time, and service address.');
+      return;
+    }
     setIsSubmitting(true);
     try {
       const formData = new FormData();
       formData.append('providerId', provider._id);
-      formData.append('serviceType', serviceType);
+      formData.append('serviceId', selectedServiceId);
       formData.append('issueDescription', issueDescription);
       formData.append('scheduledDate', scheduledDate);
       formData.append('scheduledTime', scheduledTime);
-      formData.append('paymentMethod', paymentMethod);
+      formData.append('serviceMode', serviceMode);
+      formData.append('serviceAddress', serviceMode === 'doorstep' ? address.trim() : '');
 
       selectedImages.forEach((img) => {
         formData.append('images', img);
       });
 
       const res = await bookingService.createBooking(formData);
-      const newId = res.data?.booking?._id || `TH-${Math.floor(10000 + Math.random() * 90000)}`;
-      setBookingRefId(newId);
+      setBookingRefId(res.data.booking._id);
       setCurrentStep(5);
-      toast.success('Booking confirmed successfully!');
-    } catch {
-      // Graceful fallback for mock demo
-      const fakeId = `TH-${Math.floor(10000 + Math.random() * 90000)}`;
-      setBookingRefId(fakeId);
-      setCurrentStep(5);
-      toast.success('Booking confirmed successfully!');
+      toast.success('Booking request submitted. The provider will confirm the appointment.');
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Could not submit booking. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -142,12 +139,21 @@ const BookingPage = () => {
     <div className="min-h-screen flex flex-col bg-slate-50 font-sans">
       <Navbar />
 
+      {pageError ? (
+        <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col items-center justify-center px-4 py-16 text-center">
+          <h1 className="text-xl font-bold text-gray-900">Booking unavailable</h1>
+          <p className="mt-2 text-sm text-gray-600">{pageError}</p>
+          <Link to="/services" className="mt-5 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white">Browse services</Link>
+        </main>
+      ) : !provider ? (
+        <main className="flex flex-1 items-center justify-center text-sm text-gray-500">Loading provider and services…</main>
+      ) : (
       <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full flex-1">
         
         {/* ── 5-STEP PROGRESS BAR (Matching Mockup 4) ── */}
         <div className="mb-8 bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
           <div className="flex items-center justify-between relative max-w-3xl mx-auto">
-            {STEPS.map((s, index) => {
+            {STEPS.map((s) => {
               const isPassed = currentStep > s.id;
               const isCurrent = currentStep === s.id;
               return (
@@ -210,19 +216,19 @@ const BookingPage = () => {
                     </h2>
                     <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
                       <CheckCircle className="w-3 h-3 text-emerald-500" />
-                      Verified Provider
+                      Approved Provider Listing
                     </span>
                   </div>
                   <div className="flex items-center gap-3 text-xs text-slate-500">
                     <div className="flex items-center gap-1">
                       <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
-                      <span className="font-semibold text-slate-700">{provider.averageRating || 4.7}</span>
-                      <span>({provider.totalReviews || 128} reviews)</span>
+                      <span className="font-semibold text-slate-700">{Number(provider.averageRating || 0).toFixed(1)}</span>
+                      <span>({provider.totalReviews || 0} reviews)</span>
                     </div>
                     <span>•</span>
                     <span className="flex items-center gap-1">
                       <MapPin className="w-3.5 h-3.5 text-slate-400" />
-                      Belagavi · {provider.location?.distanceKm || 2} km
+                      {[provider.location?.city, provider.location?.state].filter(Boolean).join(', ') || 'Location not provided'}
                     </span>
                   </div>
                 </div>
@@ -247,9 +253,9 @@ const BookingPage = () => {
                     onChange={handleServiceSelect}
                     className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-800 outline-none focus:border-blue-500 focus:bg-white transition-all cursor-pointer"
                   >
-                    {SERVICE_OPTIONS.map((opt) => (
-                      <option key={opt.id} value={opt.name}>
-                        {opt.name} ({opt.priceRange})
+                    {services.map((service) => (
+                      <option key={service._id} value={service._id}>
+                        {service.title} (₹{service.priceRange.min} – ₹{service.priceRange.max})
                       </option>
                     ))}
                   </select>
@@ -332,7 +338,7 @@ const BookingPage = () => {
               <div className="bg-white rounded-2xl border border-slate-200/90 p-6 space-y-6 shadow-xs animate-in fade-in duration-200">
                 <div className="border-b border-slate-100 pb-3">
                   <h3 className="text-lg font-bold text-slate-900">Choose Date & Time</h3>
-                  <p className="text-xs text-slate-500">Pick a convenient slot for your service visit.</p>
+                  <p className="text-xs text-slate-500">Choose a preferred time. The provider will confirm availability.</p>
                 </div>
 
                 {/* Service Mode Selector */}
@@ -395,7 +401,7 @@ const BookingPage = () => {
                       type="date"
                       value={scheduledDate}
                       onChange={(e) => setScheduledDate(e.target.value)}
-                      min={new Date().toISOString().split('T')[0]}
+                      min={minimumDate}
                       className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-800 outline-none focus:border-blue-500 focus:bg-white"
                     />
                   </div>
@@ -404,24 +410,14 @@ const BookingPage = () => {
                 {/* Time Slots */}
                 <div className="space-y-2">
                   <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
-                    Available Time Slots
+                    Preferred Time
                   </label>
-                  <div className="grid grid-cols-3 gap-2">
-                    {TIME_SLOTS.map((slot) => (
-                      <button
-                        key={slot}
-                        type="button"
-                        onClick={() => setScheduledTime(slot)}
-                        className={`py-2.5 rounded-xl border text-xs font-semibold transition-all ${
-                          scheduledTime === slot
-                            ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
-                            : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
-                        }`}
-                      >
-                        {slot}
-                      </button>
-                    ))}
-                  </div>
+                  <input
+                    type="time"
+                    value={scheduledTime}
+                    onChange={(e) => setScheduledTime(e.target.value)}
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-800 outline-none focus:border-blue-500 focus:bg-white"
+                  />
                 </div>
 
                 {/* Navigation Buttons */}
@@ -449,7 +445,7 @@ const BookingPage = () => {
               <div className="bg-white rounded-2xl border border-slate-200/90 p-6 space-y-6 shadow-xs animate-in fade-in duration-200">
                 <div className="border-b border-slate-100 pb-3">
                   <h3 className="text-lg font-bold text-slate-900">Review Booking Details</h3>
-                  <p className="text-xs text-slate-500">Please review all information before moving to payment.</p>
+                  <p className="text-xs text-slate-500">Please review the request before submitting it to the provider.</p>
                 </div>
 
                 <div className="space-y-3 divide-y divide-slate-100 text-sm">
@@ -486,8 +482,8 @@ const BookingPage = () => {
                 <div className="bg-blue-50/60 p-4 rounded-xl border border-blue-100 flex items-start gap-3">
                   <Shield className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
                   <div className="text-xs text-slate-600 space-y-1">
-                    <p className="font-bold text-slate-900">TrustHub Cancellation Guarantee</p>
-                    <p>Free cancellation up to 2 hours before scheduled appointment with 100% full refund.</p>
+                    <p className="font-bold text-slate-900">Booking request</p>
+                    <p>The provider will confirm the appointment. You can cancel pending or accepted bookings from My Bookings.</p>
                   </div>
                 </div>
 
@@ -503,7 +499,7 @@ const BookingPage = () => {
                     onClick={() => setCurrentStep(4)}
                     className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl text-sm shadow-md shadow-blue-500/20 active:scale-95 transition-all flex items-center gap-2"
                   >
-                    <span>Next: Payment</span>
+                    <span>Next: Payment arrangement</span>
                     <ArrowRight className="w-4 h-4" />
                   </button>
                 </div>
@@ -514,56 +510,19 @@ const BookingPage = () => {
             {currentStep === 4 && (
               <div className="bg-white rounded-2xl border border-slate-200/90 p-6 space-y-6 shadow-xs animate-in fade-in duration-200">
                 <div className="border-b border-slate-100 pb-3">
-                  <h3 className="text-lg font-bold text-slate-900">Payment Selection</h3>
-                  <p className="text-xs text-slate-500">Choose how you want to settle the service bill.</p>
+                  <h3 className="text-lg font-bold text-slate-900">Payment arrangement</h3>
+                  <p className="text-xs text-slate-500">TrustHub records bookings but does not process payments.</p>
                 </div>
 
                 <div className="space-y-3">
                   <label
-                    onClick={() => setPaymentMethod('cod')}
-                    className={`flex items-start gap-3.5 p-4 rounded-2xl border cursor-pointer transition-all ${
-                      paymentMethod === 'cod'
-                        ? 'border-blue-600 bg-blue-50/40 ring-2 ring-blue-100'
-                        : 'border-slate-200 bg-white hover:bg-slate-50'
-                    }`}
+                    className="flex items-start gap-3.5 rounded-2xl border border-blue-600 bg-blue-50/40 p-4"
                   >
-                    <input
-                      type="radio"
-                      name="paymentMethod"
-                      checked={paymentMethod === 'cod'}
-                      onChange={() => setPaymentMethod('cod')}
-                      className="mt-1 text-blue-600"
-                    />
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
-                        <span className="font-bold text-sm text-slate-900">Pay on Completion (Recommended)</span>
-                        <span className="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-bold">Zero Advance</span>
+                        <span className="font-bold text-sm text-slate-900">Arrange payment directly with the provider</span>
                       </div>
-                      <p className="text-xs text-slate-500">Inspect the completed repair first. Pay via Cash or UPI directly to technician.</p>
-                    </div>
-                  </label>
-
-                  <label
-                    onClick={() => setPaymentMethod('escrow')}
-                    className={`flex items-start gap-3.5 p-4 rounded-2xl border cursor-pointer transition-all ${
-                      paymentMethod === 'escrow'
-                        ? 'border-blue-600 bg-blue-50/40 ring-2 ring-blue-100'
-                        : 'border-slate-200 bg-white hover:bg-slate-50'
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="paymentMethod"
-                      checked={paymentMethod === 'escrow'}
-                      onChange={() => setPaymentMethod('escrow')}
-                      className="mt-1 text-blue-600"
-                    />
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-sm text-slate-900">TrustHub Escrow Secure Pay</span>
-                        <span className="text-[10px] bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full font-bold">Safest</span>
-                      </div>
-                      <p className="text-xs text-slate-500">Funds are held safely by TrustHub and only released after you approve satisfaction.</p>
+                      <p className="text-xs text-slate-500">Agree on the final price and payment method with the provider before work begins.</p>
                     </div>
                   </label>
                 </div>
@@ -626,7 +585,7 @@ const BookingPage = () => {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-slate-500">Payment</span>
-                    <span className="font-bold text-emerald-600 uppercase">{paymentMethod}</span>
+                    <span className="font-bold text-slate-700">Direct with provider</span>
                   </div>
                 </div>
 
@@ -687,7 +646,7 @@ const BookingPage = () => {
               {/* Trust badge */}
               <div className="pt-3 border-t border-slate-100 flex items-center gap-2 text-[11px] text-emerald-700 font-semibold bg-emerald-50/60 p-2.5 rounded-xl border border-emerald-100">
                 <CheckCircle className="w-4 h-4 text-emerald-500 flex-shrink-0" />
-                <span>Protected by TrustHub Escrow & 30-Day Warranty</span>
+                <span>Booking and status updates are managed by TrustHub</span>
               </div>
 
               {/* Action Button if step 1 or 2 */}
@@ -705,6 +664,7 @@ const BookingPage = () => {
         </div>
 
       </main>
+      )}
 
       <Footer />
     </div>
